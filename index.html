@@ -1,0 +1,514 @@
+<meta charset="utf-8">
+<title>實體安全動畫課</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* 版面概念：1280×720 的「機房平面圖」舞台，上方綠色流程箭頭標題列，下方左右兩位 Q 版角色與對白泡泡；外圍是暗色放映廳 */
+:root {
+  --hall: #0E1A16;        /* 放映廳 */
+  --hall-fg: #D8EDE4;
+  --hall-dim: #7FA394;
+  --paper: #F2F9F5;       /* 舞台底：淡薄荷平面圖紙 */
+  --grid: #DCEDE4;
+  --ink: #14302A;
+  --ink-soft: #4C6B62;
+  --mint: #16C47F;        /* 主色：取自原圖綠色箭頭 */
+  --mint-hi: #2BF0A6;
+  --teal: #0C7A63;
+  --sun: #FFC53D;         /* 強調 */
+  --alert: #E2474B;       /* 缺失章 */
+  --pink: #FF6FA8;        /* 阿拉蕾 */
+  --card: #FFFFFF;
+  --line: #CFE3D9;
+  --f-display: 'Huninn', 'Noto Sans TC', 'WenQuanYi Zen Hei', sans-serif;
+  --f-body: 'Noto Sans TC', 'WenQuanYi Zen Hei', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--hall); color: var(--hall-fg); font-family: var(--f-body); }
+* { box-sizing: border-box; }
+
+/* ── 播放器外框 ── */
+.player { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 16px; }
+.viewport { width: 100%; max-width: 1280px; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.45); background: var(--paper); }
+#stage { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; transform-origin: 0 0; overflow: hidden;
+  background-color: var(--paper);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 40px 40px; color: var(--ink); font-family: var(--f-body); }
+.controls { width: 100%; max-width: 1280px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.controls button { font: 600 15px var(--f-body); color: var(--hall-fg); background: #1C2E28; border: 1px solid #2C4A40; border-radius: 8px; padding: 8px 12px; cursor: pointer; min-width: 44px; }
+.controls button:hover { background: #24403A; }
+.controls button:focus-visible, #seek:focus-visible { outline: 2px solid var(--mint-hi); outline-offset: 2px; }
+#seek { flex: 1 1 200px; min-width: 0; accent-color: var(--mint); }
+#clock { font: 500 14px var(--f-body); color: var(--hall-dim); font-variant-numeric: tabular-nums; min-width: 96px; text-align: right; }
+.chapters { width: 100%; max-width: 1280px; display: flex; flex-wrap: wrap; gap: 6px; }
+.chapters button { font: 500 13px var(--f-body); color: var(--hall-dim); background: transparent; border: 1px solid #2C4A40; border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.chapters button.on { color: var(--hall); background: var(--mint); border-color: var(--mint); }
+.start { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(14,26,22,.55); border: 0; cursor: pointer; color: #fff; font-family: var(--f-display); }
+.start b { font-size: clamp(20px, 4vw, 38px); font-weight: 400; background: var(--mint); color: var(--hall); padding: .4em 1.1em; border-radius: 999px; box-shadow: 0 6px 0 var(--teal); }
+.start span { font: 400 clamp(12px, 1.6vw, 16px) var(--f-body); color: #E5F4EE; }
+body.render .player { padding: 0; display: block; }
+body.render .viewport { width: 1280px; height: 720px; max-width: none; border-radius: 0; box-shadow: none; }
+body.render .controls, body.render .chapters, body.render .start { display: none; }
+
+/* ── 舞台：標題列 ── */
+.topbar { position: absolute; left: 0; top: 0; width: 1280px; height: 76px; display: flex; align-items: center; }
+.topbar .arrow { height: 56px; overflow: hidden; margin-left: 28px; padding: 0 64px 0 26px; display: flex; align-items: center; max-width: 1000px;
+  background: linear-gradient(90deg, var(--mint-hi), var(--mint) 70%, var(--teal));
+  clip-path: polygon(0 0, calc(100% - 34px) 0, 100% 50%, calc(100% - 34px) 100%, 0 100%);
+  font: 400 30px/1 var(--f-display); color: var(--ink); white-space: nowrap; }
+.topbar .part { margin-left: auto; margin-right: 28px; font: 700 15px var(--f-body); color: var(--teal); letter-spacing: .08em; text-align: right; line-height: 1.3; }
+.topbar .part small { display: block; color: var(--ink-soft); font-weight: 500; letter-spacing: .04em; }
+.progress { position: absolute; left: 0; bottom: 0; height: 6px; background: var(--mint); width: 0; }
+
+/* ── 舞台：內容區 ── */
+.scene { position: absolute; left: 40px; top: 96px; width: 1200px; height: 412px; }
+.rv { will-change: opacity, transform; }
+.hl-able { box-shadow: 0 0 0 calc(var(--hl, 0) * 4px) var(--sun), 0 2px 0 var(--line); transform: scale(calc(1 + var(--hl, 0) * .025)); }
+
+.card { background: var(--card); border: 2px solid var(--line); border-radius: 14px; }
+.code { display: inline-block; font: 900 18px/1 var(--f-body); color: #fff; background: var(--teal); border-radius: 8px; padding: 6px 9px; font-variant-numeric: tabular-nums; }
+
+/* title */
+.t-title { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; height: 100%; padding-left: 40px; gap: 18px; }
+.t-title .kicker { font: 700 20px var(--f-body); color: var(--teal); letter-spacing: .06em; }
+.t-title h1 { margin: 0; font: 400 76px/1.05 var(--f-display); color: var(--ink); }
+.t-title h1 em { font-style: normal; display: block; font-size: 40px; color: var(--mint); margin-top: 6px; }
+.t-title .sub { font: 500 24px var(--f-body); color: var(--ink-soft); }
+.t-title .chips { display: flex; gap: 14px; margin-top: 8px; }
+.t-title .chips span { font: 700 22px var(--f-body); background: var(--ink); color: var(--mint-hi); padding: 10px 18px; border-radius: 999px; }
+.t-title .lock { position: absolute; right: 70px; top: 30px; width: 260px; height: 260px; }
+
+/* map */
+.t-map { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); grid-template-rows: 1fr auto; gap: 18px 26px; height: 100%; }
+.t-map > div { min-width: 0; }
+.t-map .band { height: 52px; display: flex; align-items: center; justify-content: center; font: 400 28px var(--f-display); color: var(--ink);
+  background: linear-gradient(90deg, var(--mint-hi), var(--mint)); clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 50%, calc(100% - 26px) 100%, 0 100%, 20px 50%); }
+.t-map .band.b2 { background: linear-gradient(90deg, var(--mint), var(--teal)); color: #fff; }
+.t-map .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-top: 14px; }
+.t-map .grp { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.t-map .grp div { font: 700 17px/1.3 var(--f-body); display: flex; gap: 8px; align-items: baseline; }
+.t-map .grp div b { color: var(--teal); font-weight: 900; min-width: 44px; font-variant-numeric: tabular-nums; }
+.t-map .grp.extra { border-color: var(--sun); border-style: dashed; }
+.t-map .grp.extra i { font: 500 14px var(--f-body); color: var(--ink-soft); font-style: normal; }
+.t-map .motto { grid-column: 1 / -1; align-self: end; text-align: center; font: 400 30px var(--f-display); color: var(--ink); background: var(--sun); border-radius: 14px; padding: 10px; margin: 0 190px; }
+
+/* section */
+.t-section { height: 100%; display: flex; align-items: center; gap: 40px; padding-left: 60px; }
+.t-section .no { font: 900 210px/1 var(--f-body); color: var(--mint); -webkit-text-stroke: 4px var(--ink); font-variant-numeric: tabular-nums; }
+.t-section h2 { margin: 0; font: 400 74px/1.1 var(--f-display); color: var(--ink); }
+.t-section p { margin: 14px 0 0; font: 500 28px var(--f-body); color: var(--ink-soft); }
+.t-section .bar { height: 12px; background: var(--sun); border-radius: 6px; margin-top: 18px; transform-origin: 0 50%; }
+
+/* cards */
+.t-cards { display: grid; gap: 14px; height: 100%; }
+.t-cards .card { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.t-cards .card h3 { margin: 0; font: 900 22px/1.25 var(--f-body); color: var(--ink); }
+.t-cards .card p { margin: 0; font: 500 17px/1.5 var(--f-body); color: var(--ink-soft); }
+.t-cards.small { gap: 10px; }
+.t-cards.small .card { padding: 10px 11px; gap: 6px; }
+.t-cards.small .card h3 { font-size: 17px; }
+.t-cards.small .card p { font-size: 14.5px; line-height: 1.45; }
+.t-cards.small .code { font-size: 15px; padding: 5px 7px; }
+
+/* case */
+.t-case { display: grid; grid-template-columns: 300px 1fr; gap: 24px; height: 100%; }
+.t-case .head { background: var(--ink); color: #fff; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.t-case .tag { font: 700 16px var(--f-body); color: var(--ink); background: var(--sun); align-self: flex-start; padding: 6px 12px; border-radius: 999px; }
+.t-case .head h3 { margin: 0; font: 400 36px/1.3 var(--f-display); color: var(--mint-hi); }
+.t-case .rows { display: flex; flex-direction: column; gap: 10px; }
+.t-case .row { display: grid; grid-template-columns: 70px 1fr; gap: 14px; align-items: center; padding: 11px 16px; }
+.t-case .row b { font: 400 24px var(--f-display); color: #fff; background: var(--mint); border-radius: 10px; text-align: center; padding: 6px 0; }
+.t-case .row:last-child b { background: var(--alert); }
+.t-case .row span { font: 500 18px/1.5 var(--f-body); color: var(--ink); }
+
+/* tools */
+.t-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; height: 100%; align-content: center; }
+.t-tools .card { padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; min-height: 300px; }
+.t-tools .ic { font-size: 54px; line-height: 1; }
+.t-tools h3 { margin: 0; font: 400 32px var(--f-display); color: var(--teal); }
+.t-tools p { margin: 0; font: 500 18px/1.6 var(--f-body); color: var(--ink-soft); }
+
+/* table */
+.t-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.t-table th { font: 700 17px var(--f-body); color: #fff; background: var(--teal); padding: 9px 14px; text-align: left; }
+.t-table th:first-child { border-radius: 10px 0 0 10px; } .t-table th:last-child { border-radius: 0 10px 10px 0; }
+.t-table td { font: 500 18px/1.35 var(--f-body); background: var(--card); padding: 10px 14px; color: var(--ink); }
+.t-table tr td:first-child { font-weight: 900; color: var(--teal); border-radius: 10px 0 0 10px; white-space: nowrap; width: 170px; }
+.t-table tr td:last-child { border-radius: 0 10px 10px 0; }
+.t-table.small { border-spacing: 0 4px; }
+.t-table.small th { font-size: 15px; padding: 6px 12px; }
+.t-table.small td { font-size: 15px; padding: 6px 12px; }
+.t-table tr.hl-able { transform: none; }
+.t-table tr.hl-able td { box-shadow: inset 0 0 0 999px rgba(255, 197, 61, calc(var(--hl, 0) * .35)); }
+
+/* trace */
+.t-trace { height: 100%; display: flex; flex-direction: column; justify-content: center; gap: 34px; }
+.t-trace .flow { display: flex; align-items: stretch; gap: 0; }
+.t-trace .step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative; }
+.t-trace .dot { width: 92px; height: 92px; border-radius: 50%; background: var(--card); border: 4px solid var(--mint); display: flex; align-items: center; justify-content: center; font: 900 30px var(--f-body); color: var(--teal); font-variant-numeric: tabular-nums; }
+.t-trace .step:not(:last-child)::after { content: ''; position: absolute; top: 44px; left: calc(50% + 50px); width: calc(100% - 100px); height: 4px; background: var(--mint); }
+.t-trace .step b { font: 700 20px var(--f-body); color: var(--ink); }
+.t-trace .step i { font: 700 14px var(--f-body); font-style: normal; color: #fff; background: var(--ink-soft); padding: 3px 8px; border-radius: 6px; }
+.t-trace .tip { align-self: center; font: 400 32px var(--f-display); background: var(--sun); color: var(--ink); padding: 14px 28px; border-radius: 14px; }
+
+/* findings */
+.t-find { display: flex; flex-direction: column; gap: 10px; height: 100%; justify-content: center; }
+.t-find .f { display: grid; grid-template-columns: 64px 92px 1fr 150px; align-items: center; gap: 16px; padding: 10px 18px; }
+.t-find .rank { font: 900 34px var(--f-body); color: var(--alert); font-variant-numeric: tabular-nums; text-align: center; }
+.t-find .f > span:not(.code) { font: 700 22px var(--f-body); color: var(--ink); }
+.t-find .code { justify-self: start; font-size: 20px; }
+.stamp { font: 900 18px var(--f-body); color: var(--alert); border: 3px solid var(--alert); border-radius: 8px; padding: 4px 8px; text-align: center; transform: rotate(-8deg); letter-spacing: .1em; }
+
+/* ncr */
+.t-ncr { display: grid; grid-template-columns: 1fr 300px; gap: 20px; height: 100%; }
+.t-ncr .form { display: flex; flex-direction: column; gap: 8px; }
+.t-ncr .fld { padding: 10px 16px; display: grid; grid-template-columns: 112px 1fr; gap: 12px; align-items: start; }
+.t-ncr .fld b { font: 700 15px var(--f-body); color: #fff; background: var(--teal); border-radius: 6px; padding: 5px 0; text-align: center; letter-spacing: .06em; }
+.t-ncr .fld span { font: 500 17px/1.55 var(--f-body); color: var(--ink); }
+.t-ncr .side { display: flex; flex-direction: column; gap: 14px; }
+.t-ncr .big-stamp { font: 900 34px var(--f-body); color: var(--alert); border: 5px double var(--alert); border-radius: 12px; padding: 14px; text-align: center; transform: rotate(-7deg); background: rgba(255,255,255,.7); letter-spacing: .08em; }
+.t-ncr .fix { padding: 14px 16px; font: 500 16px/1.6 var(--f-body); color: var(--ink); border-color: var(--mint); }
+
+/* quiz */
+.t-quiz { display: flex; flex-direction: column; gap: 12px; height: 100%; justify-content: center; }
+.t-quiz .q { display: grid; grid-template-columns: 54px 1fr; gap: 14px; align-items: center; padding: 12px 16px; }
+.t-quiz .q b { font: 400 30px var(--f-display); color: #fff; background: var(--pink); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+.t-quiz .q span { font: 700 21px/1.4 var(--f-body); color: var(--ink); }
+.t-quiz .a { margin-left: 68px; margin-top: -6px; font: 700 19px var(--f-body); color: var(--teal); }
+.t-quiz .a::before { content: '答：'; color: var(--mint); }
+
+/* summary */
+.t-sum { display: flex; flex-direction: column; gap: 16px; height: 100%; justify-content: center; }
+.t-sum .s { display: grid; grid-template-columns: 240px 1fr; align-items: center; gap: 20px; padding: 18px 24px; }
+.t-sum .s b { font: 400 30px var(--f-display); color: var(--teal); }
+.t-sum .s span { font: 400 34px var(--f-display); color: var(--ink); }
+
+/* ── 角色與對白 ── */
+.char { position: absolute; bottom: 0; width: 200px; height: 240px; }
+.char svg { width: 100%; height: 100%; overflow: visible; }
+#allan { left: 14px; }
+#arale { right: 18px; width: 180px; height: 220px; }
+.nameplate { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font: 700 13px var(--f-body); color: #fff; background: var(--ink); border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
+#arale .nameplate { background: var(--pink); }
+.bubble { position: absolute; left: 232px; right: 214px; bottom: 22px; min-height: 108px; display: flex; flex-direction: column; justify-content: center; gap: 4px;
+  background: #fff; border: 3px solid var(--ink); border-radius: 22px; padding: 12px 22px; }
+.bubble::before { content: ''; position: absolute; bottom: 26px; width: 22px; height: 22px; background: #fff; border: 3px solid var(--ink); border-top: 0; border-right: 0; }
+.bubble.A::before { left: -14px; transform: rotate(45deg); }
+.bubble.R { border-color: var(--pink); }
+.bubble.R::before { right: -14px; transform: rotate(-135deg); border-color: var(--pink); }
+.bubble .who { font: 700 14px var(--f-body); color: var(--teal); letter-spacing: .06em; }
+.bubble.R .who { color: var(--pink); }
+.bubble .txt { font: 400 23px/1.45 var(--f-display); color: var(--ink); text-wrap: pretty; }
+.mark { position: absolute; font: 900 46px var(--f-display); color: var(--alert); }
+
+@media (prefers-reduced-motion: reduce) { .start b { box-shadow: none; } }
+</style>
+
+<div class="player">
+  <div class="viewport" id="viewport">
+    <div id="stage">
+      <div class="topbar"><div class="arrow" id="hdr"></div><div class="part" id="part"></div></div>
+      <div id="scenes"></div>
+      <div class="char" id="allan"></div>
+      <div class="char" id="arale"></div>
+      <div class="bubble A" id="bubble"><div class="who" id="who"></div><div class="txt" id="txt"></div></div>
+      <div class="progress" id="prog"></div>
+    </div>
+    <button class="start" id="start" type="button"><b>▶ 開始上課</b><span>約 12 分鐘｜請開啟聲音</span></button>
+  </div>
+  <div class="controls">
+    <button id="prev" type="button" aria-label="上一段">⏮</button>
+    <button id="play" type="button" aria-label="播放或暫停">▶</button>
+    <button id="next" type="button" aria-label="下一段">⏭</button>
+    <input id="seek" type="range" min="0" max="1000" value="0" aria-label="播放進度">
+    <span id="clock">0:00 / 0:00</span>
+    <button id="fs" type="button" aria-label="全螢幕">⛶</button>
+  </div>
+  <div class="chapters" id="chapters"></div>
+  <audio id="audio" src="narration.mp3" preload="auto"></audio>
+</div>
+
+<script src="scenes.js" charset="utf-8"></script>
+<script src="timing.js" charset="utf-8"></script>
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = p => 1 - Math.pow(1 - p, 3);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const RENDER = location.hash === '#render';
+if (RENDER) document.body.classList.add('render');
+
+/* ── Q 版角色 SVG ── */
+function allanSVG() {
+  return `<svg viewBox="0 0 200 240" aria-label="Q版 Allan Lo 講師">
+  <g class="body">
+    <ellipse cx="100" cy="236" rx="70" ry="6" fill="rgba(20,48,42,.18)"/>
+    <path d="M38 236 Q40 168 100 162 Q160 168 162 236 Z" fill="#23395B"/>
+    <path d="M82 166 L100 204 L118 166 Z" fill="#fff"/>
+    <path d="M96 172 L104 172 L107 200 L100 210 L93 200 Z" fill="#E2474B"/>
+    <rect x="122" y="190" width="32" height="13" rx="3" fill="#FFC53D"/>
+    <text x="138" y="200" font-size="8" font-weight="900" text-anchor="middle" fill="#14302A" font-family="sans-serif">Allan Lo</text>
+    <g class="arm"><path d="M44 200 Q20 186 22 160" stroke="#23395B" stroke-width="16" fill="none" stroke-linecap="round"/>
+      <circle cx="22" cy="156" r="10" fill="#FFD7B5"/><line x1="22" y1="150" x2="6" y2="104" stroke="#8A5A2B" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="5" cy="101" r="5" fill="#E2474B"/></g>
+  </g>
+  <g class="head">
+    <circle cx="100" cy="96" r="70" fill="#FFD7B5"/>
+    <ellipse cx="32" cy="104" rx="10" ry="14" fill="#FFCBA4"/><ellipse cx="168" cy="104" rx="10" ry="14" fill="#FFCBA4"/>
+    <path d="M30 96 Q26 26 100 22 Q174 24 172 92 Q160 60 132 56 Q112 72 64 62 Q40 70 30 96 Z" fill="#1E1E24"/>
+    <path d="M64 62 Q92 40 132 56" stroke="#3B3B46" stroke-width="5" fill="none"/>
+    <g class="brows"><path d="M58 76 Q72 69 86 75" stroke="#1E1E24" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M114 75 Q128 69 142 76" stroke="#1E1E24" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+    <g class="eyes"><ellipse cx="72" cy="98" rx="6" ry="7.5" fill="#1E1E24"/><ellipse cx="128" cy="98" rx="6" ry="7.5" fill="#1E1E24"/>
+      <circle cx="74" cy="95" r="2" fill="#fff"/><circle cx="130" cy="95" r="2" fill="#fff"/></g>
+    <g fill="none" stroke="#1E1E24" stroke-width="4"><rect x="50" y="82" width="44" height="32" rx="9"/><rect x="106" y="82" width="44" height="32" rx="9"/>
+      <path d="M94 96 Q100 91 106 96"/><path d="M50 92 L34 88"/><path d="M150 92 L166 88"/></g>
+    <ellipse cx="58" cy="124" rx="10" ry="6" fill="#FF9E9E" opacity=".6"/><ellipse cx="142" cy="124" rx="10" ry="6" fill="#FF9E9E" opacity=".6"/>
+    <path class="m-closed" d="M84 132 Q100 144 116 132" stroke="#7A2E1E" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+    <g class="m-open"><path d="M82 128 Q100 128 118 128 Q116 152 100 153 Q84 152 82 128 Z" fill="#7A2E1E"/><ellipse cx="100" cy="146" rx="9" ry="5" fill="#FF8A8A"/></g>
+  </g>
+</svg>`;
+}
+function araleSVG() {
+  return `<svg viewBox="0 0 180 220" aria-label="Q版助教阿拉蕾">
+  <ellipse cx="90" cy="216" rx="56" ry="6" fill="rgba(20,48,42,.18)"/>
+  <path d="M30 120 Q22 190 36 206 L60 196 Z" fill="#7B4FC9"/><path d="M150 120 Q158 190 144 206 L120 196 Z" fill="#7B4FC9"/>
+  <path d="M50 216 Q52 160 90 156 Q128 160 130 216 Z" fill="#FF6FA8"/>
+  <path d="M66 162 L90 184 L114 162" fill="#fff"/>
+  <rect x="74" y="186" width="32" height="18" rx="4" fill="#fff"/><text x="90" y="199" font-size="10" font-weight="900" text-anchor="middle" fill="#FF6FA8" font-family="sans-serif">助教</text>
+  <g class="arm"><path d="M128 184 Q152 176 156 150" stroke="#FF6FA8" stroke-width="13" fill="none" stroke-linecap="round"/><circle cx="156" cy="146" r="9" fill="#FFE1CC"/></g>
+  <g class="head">
+    <path d="M30 96 Q28 30 90 26 Q152 30 150 96 Q150 130 140 140 L40 140 Q30 130 30 96 Z" fill="#7B4FC9"/>
+    <circle cx="90" cy="92" r="56" fill="#FFE1CC"/>
+    <path d="M36 84 Q40 34 90 32 Q140 34 144 84 Q126 64 112 72 Q100 58 88 70 Q72 58 60 72 Q48 64 36 84 Z" fill="#7B4FC9"/>
+    <line x1="90" y1="32" x2="90" y2="10" stroke="#14302A" stroke-width="3"/>
+    <path d="M90 4 C84 -4 74 4 90 16 C106 4 96 -4 90 4 Z" fill="#E2474B"/>
+    <g class="eyes"><ellipse cx="66" cy="98" rx="5" ry="6.5" fill="#14302A"/><ellipse cx="114" cy="98" rx="5" ry="6.5" fill="#14302A"/>
+      <circle cx="68" cy="95" r="1.8" fill="#fff"/><circle cx="116" cy="95" r="1.8" fill="#fff"/></g>
+    <g class="eyes-wow" fill="none" stroke="#14302A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M58 92 L70 98 L58 104"/><path d="M122 92 L110 98 L122 104"/></g>
+    <g fill="rgba(255,255,255,.35)" stroke="#14302A" stroke-width="4"><circle cx="66" cy="98" r="19"/><circle cx="114" cy="98" r="19"/></g>
+    <path d="M85 98 Q90 94 95 98" stroke="#14302A" stroke-width="4" fill="none"/>
+    <ellipse cx="50" cy="122" rx="8" ry="5" fill="#FF8FB8" opacity=".7"/><ellipse cx="130" cy="122" rx="8" ry="5" fill="#FF8FB8" opacity=".7"/>
+    <path class="m-closed" d="M80 126 Q90 134 100 126" stroke="#8A2E3A" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <g class="m-open"><path d="M76 122 L104 122 Q104 142 90 142 Q76 142 76 122 Z" fill="#8A2E3A"/><ellipse cx="90" cy="136" rx="7" ry="4" fill="#FF8A8A"/></g>
+  </g>
+</svg>`;
+}
+
+/* ── 場景版型 ── */
+const R = (i, extra = '') => `class="rv ${extra}" data-i="${i}"`;
+const LAYOUT = {
+  title: sc => `<div class="t-title">
+      <div class="kicker">${esc(sc.kicker)}</div>
+      <h1>實體安全<em>Physical security</em></h1>
+      <div class="sub">${esc(sc.sub)}</div>
+      <div class="chips">${sc.chips.map((c, i) => `<span ${R(i, 'hl-able')}>${esc(c)}</span>`).join('')}</div>
+      <svg class="lock" viewBox="0 0 260 260" aria-hidden="true">
+        <rect x="40" y="110" width="180" height="140" rx="24" fill="var(--mint)" stroke="var(--ink)" stroke-width="8"/>
+        <path d="M80 110 V78 a50 50 0 0 1 100 0 V110" fill="none" stroke="var(--ink)" stroke-width="16"/>
+        <circle cx="130" cy="168" r="18" fill="var(--ink)"/><rect x="122" y="176" width="16" height="40" rx="6" fill="var(--ink)"/>
+        <text x="130" y="244" font-size="18" text-anchor="middle" fill="var(--ink)" font-weight="900">A.7</text></svg>
+    </div>`,
+  map: () => `<div class="t-map">
+      <div><div class="band">區域安全</div>
+        <div class="cols">
+          <div ${R(0, 'card grp hl-able')}><div><b>7.1</b>實體安全周界</div><div><b>7.2</b>實體進入</div><div><b>7.3</b>保全辦公室、房間及設施</div></div>
+          <div ${R(1, 'card grp hl-able')}><div><b>7.4</b>實體安全監視</div><div><b>7.5</b>防範實體及環境威脅</div><div><b>7.6</b>於安全區域內工作</div></div>
+        </div></div>
+      <div><div class="band b2">設備安全</div>
+        <div class="cols">
+          <div ${R(2, 'card grp hl-able')}><div><b>7.7</b>桌面淨空與螢幕淨空</div><div><b>7.8</b>設備安置及保護</div><div><b>7.9</b>場所外資產之安全</div><div><b>7.10</b>儲存媒體</div></div>
+          <div ${R(2, 'card grp hl-able')}><div><b>7.11</b>支援之公用服務事業</div><div><b>7.12</b>佈纜安全</div><div><b>7.13</b>設備維護</div><div><b>7.14</b>設備汰除或重新使用</div></div>
+        </div>
+        <div ${R(3, 'card grp extra hl-able')} style="margin-top:12px;flex-direction:row;flex-wrap:wrap;gap:6px 22px;align-items:baseline"><div><b>5.37</b>書面紀錄之運作程序</div><div><b>6.7</b>遠端工作</div><i>屬性含實體安全</i></div>
+      </div>
+      <div ${R(4, 'motto')}>口訣：由外而內 ‧ 由人到物 ‧ 從生到死</div>
+    </div>`,
+  section: sc => `<div class="t-section"><div class="no rv-sec">${esc(sc.no)}</div>
+      <div><h2>${esc(sc.title)}</h2><p>${esc(sc.sub)}</p><div class="bar rv-bar"></div></div></div>`,
+  cards: sc => `<div class="t-cards ${sc.small ? 'small' : ''}" style="grid-template-columns:repeat(${sc.cols},1fr)">
+      ${sc.items.map((it, i) => `<div ${R(i, 'card hl-able')}><div><span class="code">${esc(it.c)}</span></div><h3>${esc(it.n)}</h3><p>${esc(it.d)}</p></div>`).join('')}</div>`,
+  case: sc => `<div class="t-case"><div class="head"><span class="tag">${esc(sc.tag)}</span><h3>${esc(sc.title)}</h3></div>
+      <div class="rows">${sc.rows.map((r, i) => `<div ${R(i, 'card row hl-able')}><b>${esc(r.k)}</b><span>${esc(r.v)}</span></div>`).join('')}</div></div>`,
+  tools: sc => `<div class="t-tools">${sc.items.map((it, i) => `<div ${R(i, 'card hl-able')}><div class="ic">${it.i}</div><h3>${esc(it.n)}</h3><p>${esc(it.d)}</p></div>`).join('')}</div>`,
+  table: sc => `<table class="t-table ${sc.small ? 'small' : ''}"><thead><tr>${sc.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+      <tbody>${sc.rows.map((r, i) => `<tr ${R(i, 'hl-able')}>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`,
+  trace: sc => `<div class="t-trace"><div class="flow">${sc.steps.map((s, i) => `<div ${R(i, 'step hl-able')} style="box-shadow:none"><div class="dot">${i + 1}</div><b>${esc(s)}</b><i>${esc(sc.refs[i])}</i></div>`).join('')}</div>
+      <div ${R(sc.steps.length, 'tip hl-able')}>${esc(sc.tip)}</div></div>`,
+  findings: sc => `<div class="t-find">${sc.items.map((it, i) => `<div ${R(i, 'card f hl-able')}><div class="rank">${(sc.start || 1) + i}</div><span class="code">${esc(it.c)}</span><span>${esc(it.d)}</span><div class="stamp">常見缺失</div></div>`).join('')}</div>`,
+  ncr: sc => `<div class="t-ncr"><div class="form">
+        <div ${R(0, 'card fld hl-able')}><b>要求依據</b><span>${esc(sc.clause)}</span></div>
+        <div ${R(1, 'card fld hl-able')}><b>客觀證據</b><span>${esc(sc.evidence)}</span></div>
+        <div ${R(2, 'card fld hl-able')}><b>不符合陳述</b><span>${esc(sc.statement)}</span></div></div>
+      <div class="side"><div ${R(3, 'big-stamp stampy')}>${esc(sc.grade)}</div><div ${R(4, 'card fix hl-able')}>${esc(sc.fix)}</div></div></div>`,
+  quiz: sc => `<div class="t-quiz">${sc.items.map((it, i) => `<div ${R(i * 2, 'card q hl-able')}><b>${i + 1}</b><span>${esc(it.q)}</span></div><div ${R(i * 2 + 1, 'a')}>${esc(it.a)}</div>`).join('')}</div>`,
+  summary: sc => `<div class="t-sum">${sc.items.map((it, i) => `<div ${R(i, 'card s hl-able')}><b>${esc(it.k)}</b><span>${esc(it.v)}</span></div>`).join('')}</div>`,
+};
+
+/* ── 建立時間軸 ── */
+const scenesEl = $('#scenes');
+const PARTS = { title: ['開場', ''], map: ['全景圖', ''] };
+let part = ['開場', 'INTRO'];
+const model = SCENES.map((sc, si) => {
+  const T = TIMING[si];
+  if (sc.type === 'section') part = [sc.title, 'PART ' + sc.no];
+  const el = document.createElement('div');
+  el.className = 'scene';
+  el.innerHTML = LAYOUT[sc.type](sc);
+  el.hidden = true;
+  scenesEl.appendChild(el);
+  // 每個項目的出現時間 = 第一句 r > i 的開始時間
+  const reveal = {};
+  let shown = 0;
+  sc.lines.forEach((l, li) => {
+    if (l.r != null && l.r > shown) { for (let i = shown; i < l.r; i++) reveal[i] = T.lines[li][0]; shown = l.r; }
+  });
+  const items = [...el.querySelectorAll('[data-i]')].map(n => ({ n, i: +n.dataset.i }));
+  return { sc, T, el, reveal, items, part: [...part], title: sc.type === 'title' ? '實體安全 Physical security' : sc.title };
+});
+const TOTAL = TIMING[TIMING.length - 1].end;
+
+const allan = $('#allan'), arale = $('#arale');
+allan.innerHTML = allanSVG() + '<div class="nameplate">講師 Allan Lo</div><div class="mark" id="markA" style="left:150px;top:-6px"></div>';
+arale.innerHTML = araleSVG() + '<div class="nameplate">助教 阿拉蕾</div><div class="mark" id="markR" style="left:-6px;top:-10px"></div>';
+const C = {
+  A: { root: allan, head: $('.head', allan), arm: $('.arm', allan), open: $('.m-open', allan), closed: $('.m-closed', allan), eyes: $('.eyes', allan), brows: $('.brows', allan), mark: $('#markA') },
+  R: { root: arale, head: $('.head', arale), arm: $('.arm', arale), open: $('.m-open', arale), closed: $('.m-closed', arale), eyes: $('.eyes', arale), wow: $('.eyes-wow', arale), mark: $('#markR') },
+};
+const bubble = $('#bubble'), who = $('#who'), txt = $('#txt');
+
+/* ── 依時間 t 決定畫面（可逐格重現，影片輸出用同一函式） ── */
+let curScene = -1, curLine = '';
+function renderAt(t) {
+  t = clamp(t, 0, TOTAL);
+  let si = model.findIndex(m => t < m.T.end); if (si < 0) si = model.length - 1;
+  const m = model[si];
+  if (si !== curScene) {
+    model.forEach((x, i) => { x.el.hidden = i !== si; });
+    $('#hdr').textContent = m.title;
+    $('#part').innerHTML = `${esc(m.part[1])}<small>${esc(m.part[0])}</small>`;
+    document.querySelectorAll('#chapters button').forEach(b => b.classList.toggle('on', +b.dataset.s === si));
+    curScene = si;
+  }
+  const ts = t - m.T.start;
+  // 場景進場
+  const pin = ease(clamp(ts / 0.5));
+  m.el.style.opacity = pin; m.el.style.transform = `translateY(${(1 - pin) * 18}px)`;
+  // 目前講話的句子
+  let li = -1;
+  m.T.lines.forEach(([a], k) => { if (t >= a - 0.05) li = k; });
+  const line = li >= 0 ? m.sc.lines[li] : null;
+  const [ls, le] = li >= 0 ? m.T.lines[li] : [0, 0];
+  const speaking = line && t >= ls && t <= le;
+  // 項目淡入與強調
+  for (const { n, i } of m.items) {
+    const rt = m.reveal[i];
+    const p = rt == null ? (m.sc.type === 'title' || m.sc.type === 'section' ? 0 : 1) : ease(clamp((t - rt) / 0.5));
+    n.style.opacity = p;
+    if (n.classList.contains('stampy')) n.style.transform = `rotate(-7deg) scale(${1 + (1 - p) * 0.9})`;
+    else n.style.translate = `0 ${(1 - p) * 18}px`;
+    const hl = line && line.h === i ? clamp((t - ls) / 0.3) * clamp((le + 0.3 - t) / 0.3) : 0;
+    n.style.setProperty('--hl', hl.toFixed(3));
+  }
+  if (m.sc.type === 'section') {
+    const no = $('.rv-sec', m.el), bar = $('.rv-bar', m.el);
+    const p = ease(clamp(ts / 0.7));
+    no.style.transform = `scale(${0.6 + 0.4 * p}) rotate(${(1 - p) * -12}deg)`; no.style.opacity = p;
+    bar.style.transform = `scaleX(${ease(clamp((ts - 0.4) / 0.8))})`;
+  }
+  // 對白泡泡
+  const key = si + ':' + li;
+  if (key !== curLine) {
+    curLine = key;
+    if (line) {
+      bubble.className = 'bubble ' + line.s;
+      who.textContent = line.s === 'A' ? 'Allan 老師' : '助教 阿拉蕾';
+      txt.textContent = line.t;
+    }
+  }
+  bubble.style.opacity = line ? clamp((t - ls + 0.2) / 0.2) : 0;
+  // 角色動作
+  for (const s of ['A', 'R']) {
+    const c = C[s], me = line && line.s === s, talk = me && speaking;
+    const e = me ? line.e || '' : '';
+    let y = Math.sin(t * 2.1 + (s === 'R' ? 1.7 : 0)) * 3;
+    if (talk) y += Math.sin(t * 9) * 2;
+    if (me && e === 'wow') y -= Math.abs(Math.sin((t - ls) * 7)) * 14 * clamp(1 - (t - ls) / 1.2);
+    c.root.style.transform = `translateY(${y.toFixed(2)}px)`;
+    const tilt = me ? Math.sin(t * 3) * 3 : 0;
+    c.head.style.transform = `rotate(${tilt.toFixed(2)}deg)`; c.head.style.transformOrigin = '50% 60%';
+    c.arm.style.transform = talk ? `rotate(${(Math.sin(t * 4) * 6).toFixed(2)}deg)` : ''; c.arm.style.transformOrigin = s === 'A' ? '44px 200px' : '128px 184px';
+    const mouthOpen = talk && Math.sin(t * 22) + Math.sin(t * 13.7) > -0.3;
+    c.open.style.display = mouthOpen ? '' : 'none'; c.closed.style.display = mouthOpen ? 'none' : '';
+    const blink = ((t + (s === 'R' ? 1.3 : 0)) % 3.6) < 0.13;
+    const wow = e === 'wow' && me;
+    if (c.wow) { c.wow.style.display = wow ? '' : 'none'; c.eyes.style.display = wow ? 'none' : ''; }
+    c.eyes.style.transform = blink ? 'scaleY(.1)' : (s === 'A' && wow ? 'scale(1.25)' : '');
+    c.eyes.style.transformBox = 'fill-box'; c.eyes.style.transformOrigin = 'center';
+    if (c.brows) c.brows.style.transform = wow ? 'translateY(-6px)' : '';
+    const mk = me && (e === 'wow' || e === 'think') ? (e === 'wow' ? '!' : '?') : '';
+    c.mark.textContent = mk;
+    c.mark.style.transform = mk ? `scale(${ease(clamp((t - ls) / 0.3)).toFixed(2)}) rotate(${(Math.sin(t * 5) * 8).toFixed(1)}deg)` : '';
+  }
+  $('#prog').style.width = (t / TOTAL * 100).toFixed(3) + '%';
+}
+window.renderAt = renderAt;
+window.TOTAL_DURATION = TOTAL;
+
+/* ── 播放器 ── */
+const audio = $('#audio'), playBtn = $('#play'), seek = $('#seek'), clock = $('#clock');
+let fallback = false, fbStart = 0, fbT = 0, fbPlaying = false;
+audio.addEventListener('error', () => { fallback = true; });
+const fmt = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+const now = () => fallback ? (fbPlaying ? fbT + (performance.now() - fbStart) / 1000 : fbT) : audio.currentTime;
+const playing = () => fallback ? fbPlaying : !audio.paused;
+function play() { $('#start').hidden = true; if (fallback) { fbStart = performance.now(); fbPlaying = true; } else audio.play().catch(() => { fallback = true; play(); }); }
+function pause() { if (fallback) { fbT = now(); fbPlaying = false; } else audio.pause(); }
+function go(t) { t = clamp(t, 0, TOTAL); if (fallback) { fbT = t; fbStart = performance.now(); } else audio.currentTime = t; renderAt(t); }
+function jump(d) { const t = now(); const si = model.findIndex(m => t < m.T.end); const target = clamp(si + d, 0, model.length - 1); go(model[target].T.start + (d === 0 ? 0 : 0.01)); }
+
+if (!RENDER) {
+  const chEl = $('#chapters');
+  model.forEach((m, i) => {
+    if (!['title', 'section', 'quiz', 'summary'].includes(m.sc.type) && i !== 1) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.s = i;
+    b.textContent = m.sc.type === 'section' ? `${m.sc.no} ${m.sc.title}` : m.sc.type === 'title' ? '開場' : m.sc.type === 'map' ? '全景圖' : m.sc.title;
+    b.onclick = () => { go(m.T.start); if (!playing()) play(); };
+    chEl.appendChild(b);
+  });
+  $('#start').onclick = play;
+  playBtn.onclick = () => playing() ? pause() : play();
+  $('#prev').onclick = () => { const t = now(); const si = model.findIndex(m => t < m.T.end); go(model[Math.max(0, t - model[si].T.start > 2 ? si : si - 1)].T.start); };
+  $('#next').onclick = () => jump(1);
+  seek.oninput = () => go(seek.value / 1000 * TOTAL);
+  $('#fs').onclick = () => { const v = $('#viewport'); (document.fullscreenElement ? document.exitFullscreen() : v.requestFullscreen?.())?.catch?.(() => {}); };
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' && e.key !== ' ') return;
+    if (e.key === ' ') { e.preventDefault(); playing() ? pause() : play(); }
+    else if (e.key === 'ArrowRight') go(now() + 5);
+    else if (e.key === 'ArrowLeft') go(now() - 5);
+  });
+  const fit = () => { const v = $('#viewport'); $('#stage').style.transform = `scale(${v.clientWidth / 1280})`; };
+  addEventListener('resize', fit); new ResizeObserver(fit).observe($('#viewport')); fit();
+  const loop = () => {
+    const t = now();
+    if (fallback && t >= TOTAL) { fbPlaying = false; fbT = TOTAL; }
+    renderAt(t);
+    if (document.activeElement !== seek) seek.value = Math.round(t / TOTAL * 1000);
+    clock.textContent = `${fmt(t)} / ${fmt(TOTAL)}`;
+    playBtn.textContent = playing() ? '⏸' : '▶';
+    requestAnimationFrame(loop);
+  };
+  renderAt(0.9); loop();
+} else {
+  renderAt(0);
+}
+})();
+</script>
