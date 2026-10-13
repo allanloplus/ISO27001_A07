@@ -19,6 +19,9 @@
 | `timing.js` / `narration.mp3` | 由腳本自動產生的時間軸與旁白音軌 |
 | `tools/build_audio.py` | 以 edge-tts 產生語音（Allan：`zh-TW-YunJheNeural`；阿拉蕾：`zh-TW-HsiaoYuNeural`） |
 | `tools/render_video.cjs` | 用 Playwright 逐格渲染並以 ffmpeg 合成 MP4 |
+| `assets/source/` | 講師與助教的角色設定圖（原始檔） |
+| `assets/chars/` | 從設定圖裁出的表情圖層（Allan 8 種、阿拉蕾 8 種） |
+| `tools/build_characters.py` | 裁切表情包並去白底（需 pillow、numpy、scipy） |
 
 ## 修改講稿後重新產生
 
@@ -29,6 +32,6 @@ python3 -m http.server 8765 &             # 本機提供檔案
 node tools/render_video.cjs http://localhost:8765/index.html video/輸出.mp4 15
 ```
 
-`scenes.js` 每句台詞的欄位：`s` 說話者（`A` Allan／`R` 阿拉蕾）、`t` 台詞、`r` 顯示到第幾個項目、`h` 強調第幾個項目、`e` 表情（`wow`／`think`）。
+`scenes.js` 每句台詞的欄位：`s` 說話者（`A` Allan／`R` 阿拉蕾）、`t` 台詞、`r` 顯示到第幾個項目、`h` 強調第幾個項目、`e` 表情（Allan：smile laugh think confused wow point wink talk；阿拉蕾：wink laugh think wow confused talk cry excited）。
 
-> 角色為原創 Q 版插畫；「阿拉蕾」為助教暱稱，造型未複製任何既有動畫角色。
+> 角色造型採用講師提供的角色設定圖（`assets/source/`）。更換角色圖後執行 `python3 tools/build_characters.py`，再重新輸出影片即可。

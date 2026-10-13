@@ -18,7 +18,7 @@
   --teal: #0C7A63;
   --sun: #FFC53D;         /* 強調 */
   --alert: #E2474B;       /* 缺失章 */
-  --pink: #FF6FA8;        /* 阿拉蕾 */
+  --pink: #1F7A8C;        /* 阿拉蕾（外套藍綠） */
   --card: #FFFFFF;
   --line: #CFE3D9;
   --f-display: 'Huninn', 'Noto Sans TC', 'WenQuanYi Zen Hei', sans-serif;
@@ -64,7 +64,7 @@ body.render .controls, body.render .chapters, body.render .start { display: none
 .progress { position: absolute; left: 0; bottom: 0; height: 6px; background: var(--mint); width: 0; }
 
 /* ── 舞台：內容區 ── */
-.scene { position: absolute; left: 40px; top: 96px; width: 1200px; height: 412px; }
+.scene { position: absolute; left: 40px; top: 92px; width: 1200px; height: 386px; }
 .rv { will-change: opacity, transform; }
 .hl-able { box-shadow: 0 0 0 calc(var(--hl, 0) * 4px) var(--sun), 0 2px 0 var(--line); transform: scale(calc(1 + var(--hl, 0) * .025)); }
 
@@ -138,9 +138,9 @@ body.render .controls, body.render .chapters, body.render .start { display: none
 .t-table td { font: 500 18px/1.35 var(--f-body); background: var(--card); padding: 10px 14px; color: var(--ink); }
 .t-table tr td:first-child { font-weight: 900; color: var(--teal); border-radius: 10px 0 0 10px; white-space: nowrap; width: 170px; }
 .t-table tr td:last-child { border-radius: 0 10px 10px 0; }
-.t-table.small { border-spacing: 0 4px; }
+.t-table.small { border-spacing: 0 3px; }
 .t-table.small th { font-size: 15px; padding: 6px 12px; }
-.t-table.small td { font-size: 15px; padding: 6px 12px; }
+.t-table.small td { font-size: 14.5px; padding: 4px 12px; }
 .t-table tr.hl-able { transform: none; }
 .t-table tr.hl-able td { box-shadow: inset 0 0 0 999px rgba(255, 197, 61, calc(var(--hl, 0) * .35)); }
 
@@ -156,7 +156,7 @@ body.render .controls, body.render .chapters, body.render .start { display: none
 
 /* findings */
 .t-find { display: flex; flex-direction: column; gap: 10px; height: 100%; justify-content: center; }
-.t-find .f { display: grid; grid-template-columns: 64px 92px 1fr 150px; align-items: center; gap: 16px; padding: 10px 18px; }
+.t-find .f { display: grid; grid-template-columns: 64px 92px 1fr 150px; align-items: center; gap: 16px; padding: 7px 18px; }
 .t-find .rank { font: 900 34px var(--f-body); color: var(--alert); font-variant-numeric: tabular-nums; text-align: center; }
 .t-find .f > span:not(.code) { font: 700 22px var(--f-body); color: var(--ink); }
 .t-find .code { justify-self: start; font-size: 20px; }
@@ -187,20 +187,22 @@ body.render .controls, body.render .chapters, body.render .start { display: none
 .t-sum .s span { font: 400 34px var(--f-display); color: var(--ink); }
 
 /* ── 角色與對白 ── */
-.char { position: absolute; bottom: 0; width: 200px; height: 240px; }
-.char svg { width: 100%; height: 100%; overflow: visible; }
-#allan { left: 14px; }
-#arale { right: 18px; width: 180px; height: 220px; }
-.nameplate { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font: 700 13px var(--f-body); color: #fff; background: var(--ink); border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
-#arale .nameplate { background: var(--pink); }
-.bubble { position: absolute; left: 232px; right: 214px; bottom: 22px; min-height: 108px; display: flex; flex-direction: column; justify-content: center; gap: 4px;
+.char { position: absolute; bottom: 0; width: 250px; height: 236px; }
+#allan { left: 6px; }
+#arale { right: 6px; }
+.sprite { position: absolute; left: 0; right: 0; bottom: 18px; height: 218px; transform-origin: 50% 100%; }
+.face { position: absolute; left: 50%; bottom: 0; height: 100%; width: auto; max-width: none; transform: translateX(-50%); user-select: none; }
+.desk { position: absolute; left: 14px; right: 14px; bottom: 0; height: 30px; display: flex; align-items: center; justify-content: center;
+  font: 700 14px var(--f-body); color: #fff; background: var(--ink); border-radius: 10px 10px 0 0; letter-spacing: .06em; }
+#arale .desk { background: var(--teal); }
+.bubble { position: absolute; left: 270px; right: 270px; bottom: 22px; min-height: 108px; display: flex; flex-direction: column; justify-content: center; gap: 4px;
   background: #fff; border: 3px solid var(--ink); border-radius: 22px; padding: 12px 22px; }
 .bubble::before { content: ''; position: absolute; bottom: 26px; width: 22px; height: 22px; background: #fff; border: 3px solid var(--ink); border-top: 0; border-right: 0; }
 .bubble.A::before { left: -14px; transform: rotate(45deg); }
-.bubble.R { border-color: var(--pink); }
-.bubble.R::before { right: -14px; transform: rotate(-135deg); border-color: var(--pink); }
+.bubble.R { border-color: var(--teal); }
+.bubble.R::before { right: -14px; transform: rotate(-135deg); border-color: var(--teal); }
 .bubble .who { font: 700 14px var(--f-body); color: var(--teal); letter-spacing: .06em; }
-.bubble.R .who { color: var(--pink); }
+.bubble.R .who { color: var(--teal); }
 .bubble .txt { font: 400 23px/1.45 var(--f-display); color: var(--ink); text-wrap: pretty; }
 .mark { position: absolute; font: 900 46px var(--f-display); color: var(--alert); }
 
@@ -243,62 +245,16 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const RENDER = location.hash === '#render';
 if (RENDER) document.body.classList.add('render');
 
-/* ── Q 版角色 SVG ── */
-function allanSVG() {
-  return `<svg viewBox="0 0 200 240" aria-label="Q版 Allan Lo 講師">
-  <g class="body">
-    <ellipse cx="100" cy="236" rx="70" ry="6" fill="rgba(20,48,42,.18)"/>
-    <path d="M38 236 Q40 168 100 162 Q160 168 162 236 Z" fill="#23395B"/>
-    <path d="M82 166 L100 204 L118 166 Z" fill="#fff"/>
-    <path d="M96 172 L104 172 L107 200 L100 210 L93 200 Z" fill="#E2474B"/>
-    <rect x="122" y="190" width="32" height="13" rx="3" fill="#FFC53D"/>
-    <text x="138" y="200" font-size="8" font-weight="900" text-anchor="middle" fill="#14302A" font-family="sans-serif">Allan Lo</text>
-    <g class="arm"><path d="M44 200 Q20 186 22 160" stroke="#23395B" stroke-width="16" fill="none" stroke-linecap="round"/>
-      <circle cx="22" cy="156" r="10" fill="#FFD7B5"/><line x1="22" y1="150" x2="6" y2="104" stroke="#8A5A2B" stroke-width="4" stroke-linecap="round"/>
-      <circle cx="5" cy="101" r="5" fill="#E2474B"/></g>
-  </g>
-  <g class="head">
-    <circle cx="100" cy="96" r="70" fill="#FFD7B5"/>
-    <ellipse cx="32" cy="104" rx="10" ry="14" fill="#FFCBA4"/><ellipse cx="168" cy="104" rx="10" ry="14" fill="#FFCBA4"/>
-    <path d="M30 96 Q26 26 100 22 Q174 24 172 92 Q160 60 132 56 Q112 72 64 62 Q40 70 30 96 Z" fill="#1E1E24"/>
-    <path d="M64 62 Q92 40 132 56" stroke="#3B3B46" stroke-width="5" fill="none"/>
-    <g class="brows"><path d="M58 76 Q72 69 86 75" stroke="#1E1E24" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M114 75 Q128 69 142 76" stroke="#1E1E24" stroke-width="5" fill="none" stroke-linecap="round"/></g>
-    <g class="eyes"><ellipse cx="72" cy="98" rx="6" ry="7.5" fill="#1E1E24"/><ellipse cx="128" cy="98" rx="6" ry="7.5" fill="#1E1E24"/>
-      <circle cx="74" cy="95" r="2" fill="#fff"/><circle cx="130" cy="95" r="2" fill="#fff"/></g>
-    <g fill="none" stroke="#1E1E24" stroke-width="4"><rect x="50" y="82" width="44" height="32" rx="9"/><rect x="106" y="82" width="44" height="32" rx="9"/>
-      <path d="M94 96 Q100 91 106 96"/><path d="M50 92 L34 88"/><path d="M150 92 L166 88"/></g>
-    <ellipse cx="58" cy="124" rx="10" ry="6" fill="#FF9E9E" opacity=".6"/><ellipse cx="142" cy="124" rx="10" ry="6" fill="#FF9E9E" opacity=".6"/>
-    <path class="m-closed" d="M84 132 Q100 144 116 132" stroke="#7A2E1E" stroke-width="4.5" fill="none" stroke-linecap="round"/>
-    <g class="m-open"><path d="M82 128 Q100 128 118 128 Q116 152 100 153 Q84 152 82 128 Z" fill="#7A2E1E"/><ellipse cx="100" cy="146" rx="9" ry="5" fill="#FF8A8A"/></g>
-  </g>
-</svg>`;
-}
-function araleSVG() {
-  return `<svg viewBox="0 0 180 220" aria-label="Q版助教阿拉蕾">
-  <ellipse cx="90" cy="216" rx="56" ry="6" fill="rgba(20,48,42,.18)"/>
-  <path d="M30 120 Q22 190 36 206 L60 196 Z" fill="#7B4FC9"/><path d="M150 120 Q158 190 144 206 L120 196 Z" fill="#7B4FC9"/>
-  <path d="M50 216 Q52 160 90 156 Q128 160 130 216 Z" fill="#FF6FA8"/>
-  <path d="M66 162 L90 184 L114 162" fill="#fff"/>
-  <rect x="74" y="186" width="32" height="18" rx="4" fill="#fff"/><text x="90" y="199" font-size="10" font-weight="900" text-anchor="middle" fill="#FF6FA8" font-family="sans-serif">助教</text>
-  <g class="arm"><path d="M128 184 Q152 176 156 150" stroke="#FF6FA8" stroke-width="13" fill="none" stroke-linecap="round"/><circle cx="156" cy="146" r="9" fill="#FFE1CC"/></g>
-  <g class="head">
-    <path d="M30 96 Q28 30 90 26 Q152 30 150 96 Q150 130 140 140 L40 140 Q30 130 30 96 Z" fill="#7B4FC9"/>
-    <circle cx="90" cy="92" r="56" fill="#FFE1CC"/>
-    <path d="M36 84 Q40 34 90 32 Q140 34 144 84 Q126 64 112 72 Q100 58 88 70 Q72 58 60 72 Q48 64 36 84 Z" fill="#7B4FC9"/>
-    <line x1="90" y1="32" x2="90" y2="10" stroke="#14302A" stroke-width="3"/>
-    <path d="M90 4 C84 -4 74 4 90 16 C106 4 96 -4 90 4 Z" fill="#E2474B"/>
-    <g class="eyes"><ellipse cx="66" cy="98" rx="5" ry="6.5" fill="#14302A"/><ellipse cx="114" cy="98" rx="5" ry="6.5" fill="#14302A"/>
-      <circle cx="68" cy="95" r="1.8" fill="#fff"/><circle cx="116" cy="95" r="1.8" fill="#fff"/></g>
-    <g class="eyes-wow" fill="none" stroke="#14302A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M58 92 L70 98 L58 104"/><path d="M122 92 L110 98 L122 104"/></g>
-    <g fill="rgba(255,255,255,.35)" stroke="#14302A" stroke-width="4"><circle cx="66" cy="98" r="19"/><circle cx="114" cy="98" r="19"/></g>
-    <path d="M85 98 Q90 94 95 98" stroke="#14302A" stroke-width="4" fill="none"/>
-    <ellipse cx="50" cy="122" rx="8" ry="5" fill="#FF8FB8" opacity=".7"/><ellipse cx="130" cy="122" rx="8" ry="5" fill="#FF8FB8" opacity=".7"/>
-    <path class="m-closed" d="M80 126 Q90 134 100 126" stroke="#8A2E3A" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <g class="m-open"><path d="M76 122 L104 122 Q104 142 90 142 Q76 142 76 122 Z" fill="#8A2E3A"/><ellipse cx="90" cy="136" rx="7" ry="4" fill="#FF8A8A"/></g>
-  </g>
-</svg>`;
+/* ── 角色表情圖層（由 tools/build_characters.py 從角色設定圖裁出） ── */
+const FACES = {
+  A: ['smile', 'laugh', 'think', 'confused', 'wow', 'point', 'wink', 'talk'],
+  R: ['wink', 'laugh', 'think', 'wow', 'confused', 'talk', 'cry', 'excited'],
+};
+const IDLE = { A: 'smile', R: 'wink' };
+const TALK = { A: ['talk', 'smile'], R: ['talk', 'excited'] };   // 一般講話時輪流切換
+const MARK = { wow: '!', think: '?', confused: '?' };
+function faceLayers(id) {
+  return FACES[id].map(f => `<img class="face" data-f="${f}" src="assets/chars/${id === 'A' ? 'allan' : 'arale'}_${f}.webp" alt="" draggable="false">`).join('');
 }
 
 /* ── 場景版型 ── */
@@ -375,12 +331,19 @@ const model = SCENES.map((sc, si) => {
 const TOTAL = TIMING[TIMING.length - 1].end;
 
 const allan = $('#allan'), arale = $('#arale');
-allan.innerHTML = allanSVG() + '<div class="nameplate">講師 Allan Lo</div><div class="mark" id="markA" style="left:150px;top:-6px"></div>';
-arale.innerHTML = araleSVG() + '<div class="nameplate">助教 阿拉蕾</div><div class="mark" id="markR" style="left:-6px;top:-10px"></div>';
-const C = {
-  A: { root: allan, head: $('.head', allan), arm: $('.arm', allan), open: $('.m-open', allan), closed: $('.m-closed', allan), eyes: $('.eyes', allan), brows: $('.brows', allan), mark: $('#markA') },
-  R: { root: arale, head: $('.head', arale), arm: $('.arm', arale), open: $('.m-open', arale), closed: $('.m-closed', arale), eyes: $('.eyes', arale), wow: $('.eyes-wow', arale), mark: $('#markR') },
-};
+allan.innerHTML = `<div class="sprite" role="img" aria-label="講師 Allan Lo">${faceLayers('A')}</div><div class="desk">講師 Allan Lo</div><div class="mark" id="markA" style="right:-8px;top:-4px"></div>`;
+arale.innerHTML = `<div class="sprite" role="img" aria-label="助教 阿拉蕾">${faceLayers('R')}</div><div class="desk">助教 阿拉蕾</div><div class="mark" id="markR" style="left:-8px;top:-4px"></div>`;
+const C = {};
+for (const [s, el] of [['A', allan], ['R', arale]]) {
+  C[s] = { root: el, sprite: $('.sprite', el), mark: $('.mark', el), faces: {}, cur: '' };
+  el.querySelectorAll('.face').forEach(img => { C[s].faces[img.dataset.f] = img; img.hidden = true; });
+}
+function showFace(c, f) {
+  if (!c.faces[f]) f = Object.keys(c.faces)[0];
+  if (c.cur === f) return;
+  if (c.cur) c.faces[c.cur].hidden = true;
+  c.faces[f].hidden = false; c.cur = f;
+}
 const bubble = $('#bubble'), who = $('#who'), txt = $('#txt');
 
 /* ── 依時間 t 決定畫面（可逐格重現，影片輸出用同一函式） ── */
@@ -433,26 +396,22 @@ function renderAt(t) {
     }
   }
   bubble.style.opacity = line ? clamp((t - ls + 0.2) / 0.2) : 0;
-  // 角色動作
+  // 角色動作：講話者依台詞表情切換圖層，聆聽者保持待機表情或跟著笑
   for (const s of ['A', 'R']) {
     const c = C[s], me = line && line.s === s, talk = me && speaking;
     const e = me ? line.e || '' : '';
+    let face = IDLE[s];
+    if (talk) face = e && c.faces[e] ? e : TALK[s][Math.floor((t - ls) / 0.85 + li * 0.5) % 2];
+    else if (me && e && c.faces[e]) face = e;
+    else if (!me && line && speaking && ['laugh', 'excited'].includes(line.e) && t - ls > 0.4) face = 'laugh';
+    showFace(c, face);
     let y = Math.sin(t * 2.1 + (s === 'R' ? 1.7 : 0)) * 3;
-    if (talk) y += Math.sin(t * 9) * 2;
-    if (me && e === 'wow') y -= Math.abs(Math.sin((t - ls) * 7)) * 14 * clamp(1 - (t - ls) / 1.2);
+    if (me && (e === 'wow' || e === 'excited' || e === 'laugh')) y -= Math.abs(Math.sin((t - ls) * 7)) * 16 * clamp(1 - (t - ls) / 1.2);
     c.root.style.transform = `translateY(${y.toFixed(2)}px)`;
-    const tilt = me ? Math.sin(t * 3) * 3 : 0;
-    c.head.style.transform = `rotate(${tilt.toFixed(2)}deg)`; c.head.style.transformOrigin = '50% 60%';
-    c.arm.style.transform = talk ? `rotate(${(Math.sin(t * 4) * 6).toFixed(2)}deg)` : ''; c.arm.style.transformOrigin = s === 'A' ? '44px 200px' : '128px 184px';
-    const mouthOpen = talk && Math.sin(t * 22) + Math.sin(t * 13.7) > -0.3;
-    c.open.style.display = mouthOpen ? '' : 'none'; c.closed.style.display = mouthOpen ? 'none' : '';
-    const blink = ((t + (s === 'R' ? 1.3 : 0)) % 3.6) < 0.13;
-    const wow = e === 'wow' && me;
-    if (c.wow) { c.wow.style.display = wow ? '' : 'none'; c.eyes.style.display = wow ? 'none' : ''; }
-    c.eyes.style.transform = blink ? 'scaleY(.1)' : (s === 'A' && wow ? 'scale(1.25)' : '');
-    c.eyes.style.transformBox = 'fill-box'; c.eyes.style.transformOrigin = 'center';
-    if (c.brows) c.brows.style.transform = wow ? 'translateY(-6px)' : '';
-    const mk = me && (e === 'wow' || e === 'think') ? (e === 'wow' ? '!' : '?') : '';
+    const sq = talk ? Math.sin(t * 11) * 0.012 + Math.sin(t * 6.3) * 0.008 : 0;
+    const tilt = me ? Math.sin(t * 2.6) * 1.6 : 0;
+    c.sprite.style.transform = `rotate(${tilt.toFixed(2)}deg) scale(${(1 - sq / 2).toFixed(4)}, ${(1 + sq).toFixed(4)})`;
+    const mk = me ? MARK[e] || '' : '';
     c.mark.textContent = mk;
     c.mark.style.transform = mk ? `scale(${ease(clamp((t - ls) / 0.3)).toFixed(2)}) rotate(${(Math.sin(t * 5) * 8).toFixed(1)}deg)` : '';
   }
