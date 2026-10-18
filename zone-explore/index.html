@@ -1,0 +1,49 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>實體安全大冒險｜自由探索版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="../shared/zone-play.css">
+
+<div class="wrap" id="wrap">
+  <div class="viewport" id="viewport">
+    <div id="stage">
+      <header class="hud">
+        <div class="logo"><b>實體安全大冒險</b><small>自由探索版｜ISO/IEC 27001:2022 A07 實體安全</small></div>
+        <div class="badges" id="badges" aria-label="附錄A控制徽章"></div>
+        <div class="score">
+          <div><b id="ex">0</b><small>已探索</small></div>
+          <div><b id="exa">0 / 16</b><small>認識的控制項</small></div>
+        </div>
+      </header>
+      <div class="map" id="map">
+        <svg id="world" viewBox="0 0 900 664" aria-label="安全區域平面圖，可點擊移動或點選探索點"><g id="cam"><g id="wc"></g></g></svg>
+        <div class="night" id="night" hidden></div>
+        <div class="ov" id="labels"></div>
+        <div class="rain" id="rain" hidden></div>
+        <div class="ov" id="tags"></div>
+        <div class="ov" id="spots"></div>
+        <svg class="offarrow" id="offarrow" viewBox="-23 -23 46 46" hidden><circle r="21" fill="rgba(15,23,42,.85)" stroke="#FFC53D" stroke-width="3"/><path d="M-7 -9 L11 0 L-7 9 Z" fill="#FFC53D"/></svg>
+        <div class="loc" id="loc"></div>
+        <div class="legend" id="legend"></div>
+        <div class="mapbtn"><button type="button" id="bMap" title="全圖（M）">🗺 全圖</button><button type="button" id="bPop" hidden>⤢ 新視窗</button></div>
+        <div class="cctv" id="cctv" hidden></div>
+        <div class="toast" id="toast" hidden></div>
+        <div class="msg" id="msg" hidden></div>
+        <div class="findbar" id="findbar" hidden></div>
+        <div class="dlg A" id="dlg" hidden><div class="pt"><img id="dlgImg" alt=""></div><div class="box"><div class="who" id="dlgWho"></div><div class="txt" id="dlgTxt"></div><div class="more">點擊或按 Enter 繼續 ▶</div></div></div>
+        <div class="modal" id="modal" hidden></div>
+      </div>
+      <aside class="quest" id="quest"></aside>
+      <div class="title" id="title"></div>
+    </div>
+  </div>
+</div>
+<audio id="voice" preload="none"></audio>
+
+<script src="../shared/zone-world.js" charset="utf-8"></script>
+<script src="spots.js" charset="utf-8"></script>
+<script src="voice.js" charset="utf-8"></script>
+<script src="../shared/zone-engine.js" charset="utf-8"></script>

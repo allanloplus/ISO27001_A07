@@ -1,5 +1,6 @@
-/* 實體安全大冒險｜互動闖關版：遊戲引擎
- * 平面圖、表單、角色共用 ../shared/zone-world.js；關卡內容在 missions.js；語音對照在 voice.js（由 tools/build_voice.py 產生）
+/* 實體安全大冒險：互動闖關版（zone-game）與自由探索版（zone-explore）共用的遊戲引擎
+ * 平面圖、表單、角色在 zone-world.js；闖關版的關卡在 zone-game/missions.js，探索版的探索點在 zone-explore/spots.js；
+ * 語音對照在各版本的 voice.js（由 tools/build_voice.py 產生）。頁面有載入 SPOTS 時即為自由探索模式。
  * 製作：Allan Lo 顧問，2026/10/18
  */
 (() => {
@@ -10,11 +11,12 @@ const W = id => document.getElementById(id);
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, p) => a + (b - a) * p;
 const hyp = (ax, ay, bx, by) => Math.hypot(bx - ax, by - ay);
-const MW = 900, MH = 664;
+let MW = 900, MH = 664;   // 地圖可視範圍（依版面調整）
 const VOICES = typeof VOICE !== 'undefined' ? VOICE : {};
-const SAVE_KEY = 'iso27001-zone-game-v1';
+const EXPLORE = typeof SPOTS !== 'undefined';   // 自由探索版：沒有關卡與計分，點選探索點聽說明
+const SAVE_KEY = EXPLORE ? 'iso27001-zone-explore-v1' : 'iso27001-zone-game-v1';
 const PIN_CODE = '2468';
-const Z_PLAY = 1.35, Z_ALL = Math.min(MW / (BOUNDS[2] - BOUNDS[0]), MH / (BOUNDS[3] - BOUNDS[1]));
+let Z_PLAY = 1.35, Z_ALL = Math.min(MW / (BOUNDS[2] - BOUNDS[0]), MH / (BOUNDS[3] - BOUNDS[1]));
 
 /* ═════════════ 1. 碰撞：牆、玻璃、上鎖的門、家具 ═════════════ */
 const PR = 9, WR = 5 + PR;                 // 阿哲腳下半徑；牆厚一半 + 半徑
@@ -120,7 +122,7 @@ W('actors').insertAdjacentHTML('beforebegin', `
   <g id="gtarget"><circle r="22" fill="rgba(255,197,61,.18)" stroke="#FFC53D" stroke-width="4"/><g id="gtarrow"><path d="M-11 -66 h22 l-11 16z" fill="#FFC53D" stroke="#7A4A00" stroke-width="2"/></g></g>`);
 
 /* ═════════════ 3. 角色與場景狀態 ═════════════ */
-const F0 = { wb: 0, hl: '', legend: 0, gatealarm: 0, blinds: 0, cables: 0, labels: 0, pwrmix: 0, openport: 0, truck: 0, box: 0, boxopen: 0, newsrv: 0,
+const F0 = { wb: 0, hl: '', legend: 0, gatealarm: 0, glasshl: 0, blinds: 0, cables: 0, labels: 0, pwrmix: 0, openport: 0, truck: 0, box: 0, boxopen: 0, newsrv: 0,
   junk: 0, rackopen: 0, cord: 0, upstest: 0, gen: 0, nasfail: 0, nasgone: 0, cage: 0, cctv: 0, night: 0, messy: 0, printer: 0, rain: 0, sandbag: 0 };
 let F = { ...F0 }, FT = {};
 let clock = 0;
@@ -182,11 +184,20 @@ function resetWorld(i) {
 }
 
 /* ═════════════ 4. 進度、計分與存檔 ═════════════ */
-let S = { done: [], mistakes: [], cur: 0, voice: true, started: false };
+let S = { done: [], mistakes: [], cur: 0, voice: true, started: false, seen: [] };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s && Array.isArray(s.done)) S = { ...S, ...s }; } catch (e) { /* 瀏覽器不允許儲存時，照常遊玩 */ }
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 忽略 */ } }
 const score = () => Math.max(0, 100 - S.mistakes.length * 5);
-const earned = () => { const g = new Set(); for (const m of MISSIONS) if (S.done.includes(m.no)) m.annex.forEach(c => g.add(c)); return g; };
+const earned = () => {
+  const g = new Set();
+  if (EXPLORE) {
+    for (const sp of SPOTS) if (S.seen.includes(sp.id)) sp.annex.forEach(c => g.add(c));
+    for (const z in ZONES_INFO) if (S.seen.includes('zone:' + z)) ZONES_INFO[z].annex.forEach(c => g.add(c));
+    return g;
+  }
+  for (const m of MISSIONS) if (S.done.includes(m.no)) m.annex.forEach(c => g.add(c));
+  return g;
+};
 function addMistake(q, pick, fix, ref) {
   const m = MISSIONS[MI];
   S.mistakes.push({ no: m.no, title: m.title, q, pick, fix, ref });
@@ -292,6 +303,7 @@ function missionClear() {
 const FACE_OK = { A: ['smile', 'laugh', 'think', 'confused', 'wow', 'point', 'wink', 'talk'], R: ['wink', 'laugh', 'think', 'wow', 'confused', 'talk', 'cry', 'excited'] };
 let DL = null;   // 目前的對話：{ lines, i, t0, done }
 function talk(lines, done) {
+  collapseSheet();
   if (!lines || !lines.length) { done(); return; }
   mode = 'busy'; ME.path = null;
   DL = { lines, i: 0, t0: clock, done };
@@ -320,8 +332,10 @@ function advance() {
 W('dlg').addEventListener('click', e => { e.stopPropagation(); advance(); });
 
 /* ═════════════ 8. 互動視窗：選擇、複選、配對、表單、密碼、任務板 ═════════════ */
-function openModal(html) { const m = W('modal'); m.innerHTML = html; m.hidden = false; }
-function closeModal() { W('modal').hidden = true; W('modal').innerHTML = ''; }
+// 手機直向：開視窗前先收合任務卡，關閉後若原本是展開的就還原（例如從說明卡點開表單）
+let sheetBack = false;
+function openModal(html) { if (W('modal').hidden) sheetBack = sheetOpen; collapseSheet(); const m = W('modal'); m.innerHTML = html; m.hidden = false; }
+function closeModal() { W('modal').hidden = true; W('modal').innerHTML = ''; if (sheetBack && LAY === 'p' && !DL) { sheetBack = false; sheetOpen = true; applyLayout(); } sheetBack = false; }
 const KEYS = 'ABCDEFG';
 const head = (no, name, right = '') => `<div class="ch"><i>${esc(no)}</i><b>${esc(name)}</b><span>${esc(right)}</span></div>`;
 const missionTag = () => `第 ${String(M().no).padStart(2, '0')} 關`;
@@ -467,7 +481,7 @@ function openPin(id) {
     if (k === '清除') code = ''; else if (code.length < 4) code += k;
     W('pd').textContent = (code.replace(/./g, '●') + '····').slice(0, 4);
     if (code.length === 4) {
-      if (code === PIN_CODE) { pinOK = true; W('fbx').innerHTML = feedback(true, '卡片與密碼驗證成功，門禁系統已留下進出紀錄。'); setTimeout(() => { closeModal(); mode = 'play'; }, 700); }
+      if (code === PIN_CODE) { pinOK = true; W('fbx').innerHTML = feedback(true, '卡片與密碼驗證成功，門禁系統已留下進出紀錄。'); setTimeout(() => { closeModal(); mode = 'play'; if (EXPLORE && pendingSpot) ME.path = navPath([ME.x, ME.y], pendingSpot.stand); }, 700); }
       else { W('fbx').innerHTML = '<div class="fb no"><b>密碼錯誤</b>　請再試一次（連續錯誤會觸發門禁告警）。</div>'; code = ''; setTimeout(() => { W('pd') && (W('pd').textContent = '····'); }, 400); }
     }
   });
@@ -519,8 +533,9 @@ function procLines(list) {
   return [...g].map(([code, secs]) => `<p><b>ISMS-${esc(code)}</b>${esc(DOCS[code] || '')}${secs.length ? `<em>${esc(secs.join('、'))}</em>` : ''}</p>`).join('');
 }
 function renderQuest() {
+  if (EXPLORE) { renderExplorePanel(); return; }
   const q = W('quest');
-  const btns = `<div class="qbtns"><button type="button" data-b="board">任務板</button><button type="button" data-b="map" class="${overview ? 'on' : ''}">全圖 M</button><button type="button" data-b="voice" class="${S.voice ? 'on' : ''}">語音${S.voice ? '開' : '關'}</button><button type="button" data-b="help">說明</button></div>`;
+  const btns = `<div class="qbtns">${sheetBtn()}<button type="button" data-b="board">任務板</button><button type="button" data-b="map" class="${overview ? 'on' : ''}">全圖 M</button><button type="button" data-b="voice" class="${S.voice ? 'on' : ''}">語音${S.voice ? '開' : '關'}</button><button type="button" data-b="help">說明</button></div>`;
   if (MI < 0) {
     q.innerHTML = `<div class="qh"><span class="no">QUEST LIST</span><span class="zpill" style="background:${zoneColor('ALL')}">四色區域</span></div><h3>關卡一覽</h3>
       <div class="qlist">${MISSIONS.map(m => `<div class="${S.done.includes(m.no) ? 'done' : ''}"><b>${String(m.no).padStart(2, '0')}</b><i style="background:${m.zone === 'ALL' ? '#fff' : ZONES[m.zone].chip}"></i><span>${esc(m.title)}</span></div>`).join('')}</div>
@@ -549,19 +564,32 @@ function renderQuest() {
 }
 function fitPanel() {
   const q = W('quest');
+  if (LAY !== 'd') { q.classList.remove('tight', 'tighter'); return; }   // 手機版任務卡可捲動
   q.classList.remove('tight', 'tighter');
   if (q.scrollHeight > q.clientHeight + 1) q.classList.add('tight');
   if (q.scrollHeight > q.clientHeight + 1) q.classList.add('tighter');
 }
 W('quest').addEventListener('click', e => {
+  if (LAY === 'p' && (e.target.closest('[data-b="sheet"]') || (e.target.closest('.qh') && !sheetOpen))) { sheetOpen = !sheetOpen; applyLayout(); return; }
+  const fv = e.target.closest('[data-form]'); if (fv) { openFormView(fv.dataset.form); return; }
+  const sp = e.target.closest('[data-spot]'); if (sp) { goSpot(spotById(sp.dataset.spot)); return; }
+  const zn = e.target.closest('[data-zone]'); if (zn) { openZone(ROOMS.find(r => r.id === zn.dataset.zone)); return; }
   const b = e.target.closest('[data-b]'); if (!b) return;
-  if (b.dataset.b === 'board') openBoard();
+  if (b.dataset.b === 'board') { if (EXPLORE) { panelView = 'list'; renderQuest(); } else openBoard(); }
+  if (b.dataset.b === 'again' && curSpot && curSpot.id) openSpot(curSpot);
+  if (b.dataset.b === 'reset') { S.seen = []; save(); renderHud(); renderQuest(); for (const id in SPOT_EL) SPOT_EL[id].classList.remove('seen'); }
   if (b.dataset.b === 'map') toggleOverview();
   if (b.dataset.b === 'voice') { S.voice = !S.voice; save(); if (!S.voice) W('voice').pause(); renderQuest(); }
   if (b.dataset.b === 'help') openHelp();
 });
 function renderHud() {
   const got = earned();
+  if (EXPLORE) {
+    for (const c of ANNEX_ORDER) BD[c].classList.toggle('got', got.has(c));
+    W('ex').textContent = `${SPOTS.filter(s => S.seen.includes(s.id)).length} / ${SPOTS.length}`;
+    W('exa').textContent = `${got.size} / 16`;
+    return;
+  }
   for (const c of ANNEX_ORDER) BD[c].classList.toggle('got', got.has(c));
   W('sc').textContent = score(); W('sc').classList.toggle('bad', score() < 85);
   W('nc').textContent = S.mistakes.length; W('nc').classList.toggle('bad', S.mistakes.length > 0);
@@ -584,6 +612,21 @@ function openBoard() {
 function openHelp() {
   const prev = mode === 'title' ? 'title' : mode; if (mode !== 'play' && mode !== 'title') return;
   mode = 'busy';
+  if (EXPLORE) {
+    openModal(`<div class="card" style="width:600px">${head('說明', '自由探索版的操作方式')}<div class="cb help">
+      <div><b>移動</b>：<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>；按住 <kbd>Shift</kbd> 快跑；也可以直接點地圖，阿哲會自動走過去。</div>
+      <div><b>探索點</b>：點地圖上的圓形圖示，阿哲會走過去，Allan 老師與阿拉蕾出來說明相關規定；靠近圖示時也可以按 <kbd>E</kbd>。</div>
+      <div><b>區域</b>：點地圖上的區域名稱標籤，說明該區（白／綠／黃／紅）的定義、進入條件與管制要求。</div>
+      <div><b>資訊卡</b>：右側（手機直向為下方任務卡，點「▲ 規定」展開）顯示規定重點、依據條文、表單（可點開看範例）、運作流程與附錄A控制項。對話時點擊或按 <kbd>Enter</kbd> 繼續，<kbd>M</kbd> 切換全圖。</div>
+      <div><b>門禁</b>：進入紅區（機房、電力室）要門禁卡＋密碼（教學用密碼 ${PIN_CODE}）；Y-04 研發／財務區不是阿哲的權責區域，不能進入。</div>
+      <div><b>紀錄</b>：探索圖鑑會記錄看過的探索點（存在本機瀏覽器），沒有計分。</div>
+      <div class="ref">依據 ISMS-L2-09、ISMS-L3-02 及 L4 表單｜ISO/IEC 27001:2022 附錄A 運作流程 A07 實體安全｜${esc(CREDIT)}</div>
+      <div class="acts"><button class="btn alt" id="bReset">清除探索紀錄</button><button class="btn go" id="bClose">知道了</button></div></div></div>`);
+    W('bClose').onclick = () => { closeModal(); mode = prev; };
+    W('bReset').onclick = () => { S.seen = []; save(); renderHud(); renderQuest(); for (const id in SPOT_EL) SPOT_EL[id].classList.remove('seen'); closeModal(); mode = prev; };
+    W('bClose').focus();
+    return;
+  }
   openModal(`<div class="card" style="width:600px">${head('說明', '操作方式與規則')}<div class="cb help">
     <div><b>移動</b>：<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>；按住 <kbd>Shift</kbd> 快跑；也可以直接點地圖，阿哲會自動走過去。</div>
     <div><b>目標</b>：右側「目前目標」與地圖上的黃色虛線、箭頭會帶路，走到定點就會觸發情境。</div>
@@ -615,13 +658,14 @@ function report() {
 /* ═════════════ 11. 開始畫面 ═════════════ */
 function showTitle() {
   mode = 'title';
+  if (EXPLORE) { showTitleExplore(); return; }
   const t = W('title'), cont = S.started && (S.done.length || S.cur);
   t.hidden = false;
   t.innerHTML = `<div class="kick">ISO/IEC 27001:2022 附錄A｜運作流程 A07 實體安全</div>
     <h1>實體安全大冒險<small>互動闖關版</small></h1>
     <p>親自操控機房管理者阿哲，走完白、綠、黃、紅四大安全區域</p>
     <div class="zs">${'WGYR'.split('').map(z => `<span style="background:${z === 'W' ? '#fff' : ZONES[z].chip}">${ZONES[z].name}</span>`).join('')}</div>
-    <div class="tb"><button type="button" id="tNew">▶ ${cont ? '重新開始' : '開始闖關'}</button>${cont ? `<button type="button" id="tCont">繼續第 ${String(MISSIONS[S.cur].no).padStart(2, '0')} 關</button>` : ''}<button type="button" class="alt" id="tHelp">操作說明</button><a class="alt" href="../zone-quest/index.html">影片版</a></div>
+    <div class="tb"><button type="button" id="tNew">▶ ${cont ? '重新開始' : '開始闖關'}</button>${cont ? `<button type="button" id="tCont">繼續第 ${String(MISSIONS[S.cur].no).padStart(2, '0')} 關</button>` : ''}<button type="button" class="alt" id="tHelp">操作說明</button><a class="alt" href="../zone-explore/index.html">探索版</a><a class="alt" href="../zone-quest/index.html">影片版</a></div>
     <div class="by">${esc(CREDIT)}</div>`;
   W('tNew').onclick = () => { S = { done: [], mistakes: [], cur: 0, voice: S.voice, started: true }; save(); t.hidden = true; renderHud(); talk(INTRO, () => startMission(0, true)); };
   if (W('tCont')) W('tCont').onclick = () => { t.hidden = true; startMission(S.cur, true); };
@@ -636,6 +680,7 @@ addEventListener('keydown', e => {
   if (KMAP[e.code]) { KEY[KMAP[e.code]] = true; if (mode === 'play') { e.preventDefault(); ME.path = null; } }
   if (e.key === 'Shift') KEY.run = true;
   if ((e.key === 'Enter' || e.key === ' ') && DL) { e.preventDefault(); advance(); }
+  else if (EXPLORE && (e.key === 'e' || e.key === 'E' || e.key === 'Enter') && mode === 'play' && nearSpot) { e.preventDefault(); openSpot(nearSpot); }
   if ((e.key === 'm' || e.key === 'M') && (mode === 'play' || overview)) toggleOverview();
 });
 addEventListener('keyup', e => { if (KMAP[e.code]) KEY[KMAP[e.code]] = false; if (e.key === 'Shift') KEY.run = false; });
@@ -646,13 +691,15 @@ function mapToWorld(e) {
   return [(sx - MW / 2) / CAM.z + CAM.x, (sy - MH / 2) / CAM.z + CAM.y];
 }
 W('map').addEventListener('pointerdown', e => {
-  if (e.target.closest('#modal, #dlg, #findbar, .mapbtn')) return;
+  if (e.target.closest('#modal, #dlg, #findbar, .mapbtn, .spot, .rl.click')) return;
+  if (sheetOpen) { collapseSheet(); return; }
   const [wx, wy] = mapToWorld(e);
   if (finding) { findClick(wx, wy); return; }
   if (DL) { advance(); return; }
   if (mode !== 'play') return;
   if (overview) { overview = false; W('bMap').classList.remove('on'); renderQuest(); }
   ME.path = navPath([ME.x, ME.y], [wx, wy]); ME.stuck = 0;
+  if (EXPLORE && pendingSpot) { pendingSpot = null; renderQuest(); }
   clickFx = { x: wx, y: wy, t: clock };
 });
 let clickFx = null;
@@ -665,14 +712,14 @@ function update(dt) {
     let dx = (KEY.r ? 1 : 0) - (KEY.l ? 1 : 0), dy = (KEY.d ? 1 : 0) - (KEY.u ? 1 : 0);
     if (!dx && !dy && ME.path) {
       const [tx, ty] = ME.path[0], d = hyp(ME.x, ME.y, tx, ty);
-      if (d < 6) { ME.path.shift(); if (!ME.path.length) ME.path = null; } else { dx = (tx - ME.x) / d; dy = (ty - ME.y) / d; }
+      if (d < 6) { ME.path.shift(); if (!ME.path.length) { ME.path = null; ME.arrived = clock; } } else { dx = (tx - ME.x) / d; dy = (ty - ME.y) / d; }
     }
     if (dx || dy) {
       const n = Math.hypot(dx, dy), sp = (KEY.run ? 290 : 180) * dt;
       const p = { x: ME.x + dx / n * sp, y: ME.y + dy / n * sp };
       solve(p);
       const moved = hyp(ME.x, ME.y, p.x, p.y);
-      if (ME.path && moved < sp * 0.2) { ME.stuck += dt; if (ME.stuck > 0.45) { ME.path = null; ME.stuck = 0; } } else ME.stuck = 0;
+      if (ME.path && moved < sp * 0.2) { ME.stuck += dt; if (ME.stuck > 0.45) { ME.path = null; ME.stuck = 0; ME.arrived = clock; } } else ME.stuck = 0;
       if (Math.abs(p.x - ME.x) > 0.25) ME.face = p.x < ME.x ? -1 : 1;
       if (moved > 0.1) ME.walkT = clock;
       ME.x = p.x; ME.y = p.y; trailPush();
@@ -684,9 +731,9 @@ function update(dt) {
       if (d.id === 'y04' && dd < 31 && clock > msgCool) { flashMsg('Y-04 研發／財務區（黃區）不是阿哲的權責區域：須經單位主管核准，並由權責人員全程陪同（L2-09 §5.2.1）。', 4); msgCool = clock + 5; }
       if (d.id === 'gate' && F.gatealarm && dd < 40 && clock > msgCool) { flashMsg('閘門告警中：一人一卡，請先處理尾隨。'); msgCool = clock + 3; }
     }
-    // 抵達目標
-    const st = stepNow(), tg = targetOf(st);
-    if (mode === 'play' && tg && hyp(ME.x, ME.y, tg[0], tg[1]) < 28) runStep();
+    // 抵達目標（探索版：抵達探索點）
+    if (EXPLORE) exploreArrive();
+    else { const st = stepNow(), tg = targetOf(st); if (mode === 'play' && tg && hyp(ME.x, ME.y, tg[0], tg[1]) < 28) runStep(); }
   }
   // 其他角色
   for (const id in A) {
@@ -727,7 +774,15 @@ const toScreen = (x, y) => [(x - CAM.x) * CAM.z + MW / 2, (y - CAM.y) * CAM.z + 
 function render(dt) {
   // 鏡頭
   let tgt;
-  if (finding) tgt = { x: finding.c.cam[0], y: finding.c.cam[1], z: finding.c.cam[2] };
+  if (finding) {
+    // 找碴鏡頭：依關卡設定；畫面較小（手機）放不下全部問題點時，自動縮小並置中
+    const sp = finding.c.spots, pad = 70;
+    const x0 = Math.min(...sp.map(q => q.x)) - pad, x1 = Math.max(...sp.map(q => q.x)) + pad, y0 = Math.min(...sp.map(q => q.y)) - pad, y1 = Math.max(...sp.map(q => q.y)) + pad;
+    let [cx, cy, z] = finding.c.cam;
+    const fits = cx - MW / 2 / z <= x0 && cx + MW / 2 / z >= x1 && cy - MH / 2 / z <= y0 && cy + MH / 2 / z >= y1;
+    if (!fits) { z = Math.min(z, MW / (x1 - x0), MH / (y1 - y0)); cx = (x0 + x1) / 2; cy = (y0 + y1) / 2; }
+    tgt = { x: cx, y: cy, z };
+  }
   else if (overview || mode === 'title') tgt = { x: 720, y: 400, z: Z_ALL };
   else tgt = { x: ME.x, y: ME.y - 20, z: Z_PLAY };
   tgt = clampCam(tgt);
@@ -780,7 +835,7 @@ function render(dt) {
   }
 
   // 場景狀態
-  vis(W('wbink'), F.wb); vis(W('frost'), F.blinds); vis(W('sight'), false);
+  vis(W('wbink'), F.wb); vis(W('frost'), F.blinds); vis(W('sight'), !!F.glasshl); setA(W('sight'), 'opacity', (0.55 + 0.45 * Math.abs(Math.sin(clock * 4))).toFixed(2));
   vis(W('cmessy'), !F.cables); vis(W('ctidy'), F.cables); vis(W('clabels'), F.labels);
   vis(W('p-pwrmix'), F.pwrmix); vis(W('p-openport'), F.openport); setA(W('p-portring'), 'opacity', Math.floor(clock * 3) % 2 ? 1 : 0.2);
   { const t0 = FT.truck ?? -99, kk = F.truck ? clamp((clock - t0) / 2) : 1 - clamp((clock - t0) / 2), e = 1 - Math.pow(1 - kk, 3); vis(W('truck'), e > 0.01); setA(W('truck'), 'transform', `translate(${((1 - e) * 360).toFixed(1)} 0)`); }
@@ -801,7 +856,7 @@ function render(dt) {
   vis(W('sandbag'), F.sandbag);
   for (let i = 0; i < 3; i++) setA(W('fan' + i), 'transform', `rotate(${((clock * 400 + i * 40) % 360).toFixed(1)} 1417 ${450 + i * 30})`);
   for (const z of 'WGYR') { const on = F.hl === z || F.hl === 'ALL', g = W('zo-' + z); setA(g, 'stroke-width', on ? 7 : 3); setA(g, 'opacity', on ? (0.65 + 0.35 * Math.abs(Math.sin(clock * 3))).toFixed(2) : 0.5); setA(g, 'stroke-dasharray', on ? '14 8' : '8 6'); setA(g, 'stroke-dashoffset', on ? (-clock * 30 % 22).toFixed(1) : 0); }
-  W('legend').classList.toggle('hl', !!F.legend);
+  W('legend').classList.toggle('hl', !!F.legend); W('legend').classList.toggle('on', overview || !!F.legend);
   for (const g of document.querySelectorAll('#marks .mk')) setA(g, 'transform', F.legend ? `translate(${g.dataset.x} ${g.dataset.y}) scale(${(1 + 0.5 * Math.abs(Math.sin(clock * 5))).toFixed(3)}) translate(${-g.dataset.x} ${-g.dataset.y})` : '');
   for (const el of document.querySelectorAll('.camled')) setA(el, 'fill', Math.floor(clock * 1.5) % 2 ? '#fff' : '#FCA5A5');
   W('night').hidden = !F.night; W('rain').hidden = !F.rain;
@@ -809,7 +864,7 @@ function render(dt) {
   W('cctv').hidden = !F.cctv;
 
   // 目標指引：虛線路徑、目標圈、畫面外箭頭
-  const st = mode === 'play' && !overview ? stepNow() : null, tg = targetOf(st);
+  const tg = mode !== 'play' || overview ? null : EXPLORE ? (pendingSpot ? pendingSpot.stand : null) : targetOf(stepNow());
   vis(W('gtarget'), !!tg); vis(W('groute'), !!tg);
   const off = W('offarrow');
   if (tg) {
@@ -825,6 +880,8 @@ function render(dt) {
     off.hidden = !out;
     if (out) { const cx = MW / 2, cy = MH / 2, ang = Math.atan2(sy - cy, sx - cx), t = Math.min((MW / 2 - 40) / Math.abs(Math.cos(ang) || 1e-6), (MH / 2 - 40) / Math.abs(Math.sin(ang) || 1e-6)); setS(off, 'transform', `translate(${cx + Math.cos(ang) * t}px, ${cy + Math.sin(ang) * t}px) rotate(${ang}rad)`); }
   } else off.hidden = true;
+
+  if (EXPLORE) renderSpots();
 
   // 房間標籤、所在位置
   for (const r of RL) {
@@ -861,20 +918,202 @@ function lockedForMe(d) {
   return false;
 }
 
-/* ═════════════ 15. 啟動 ═════════════ */
-const fit = () => {
-  const s = Math.min(innerWidth / 1280, innerHeight / 720);
-  W('viewport').style.width = 1280 * s + 'px'; W('viewport').style.height = 720 * s + 'px';
-  W('stage').style.transform = `scale(${s})`;
-};
-addEventListener('resize', fit); fit();
+/* ═════════════ 15. 自由探索模式（zone-explore） ═════════════ */
+let pendingSpot = null, nearSpot = null, curSpot = null, panelView = 'list';
+const SPOT_EL = {};
+const spotById = id => SPOTS.find(s => s.id === id);
+const ZONE_ROOM = { W: 'W01', G: 'G01', Y: 'Y02', R: 'R01' };   // 圖鑑中點區域時代表的房間
+if (EXPLORE) {
+  for (const sp of SPOTS) sp.stand = sp.at ? NODES[sp.at] : NODES[nearestNode([sp.x, sp.y])];
+  for (const sp of SPOTS) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'spot ' + sp.zone + (S.seen.includes(sp.id) ? ' seen' : ''); b.setAttribute('aria-label', sp.title);
+    b.innerHTML = `<span class="ic">${sp.icon}</span><span class="lb">${esc(sp.title)}<i>點擊或按 E 聽說明</i></span>`;
+    b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); goSpot(sp); });
+    W('spots').appendChild(b); SPOT_EL[sp.id] = b;
+  }
+  for (const r of RL) {
+    r.el.classList.add('click'); r.el.title = '點擊聽區域說明';
+    r.el.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); openZone(r.rm); });
+  }
+}
+function goSpot(sp) {
+  if (!sp || mode !== 'play') return;
+  overview = false; W('bMap').classList.remove('on');
+  curSpot = sp; panelView = 'spot';
+  if (hyp(ME.x, ME.y, sp.stand[0], sp.stand[1]) < 34) { openSpot(sp); return; }
+  ME.path = navPath([ME.x, ME.y], sp.stand); ME.stuck = 0; pendingSpot = sp; routeT = 0;
+  renderQuest();
+}
+function exploreArrive() {
+  nearSpot = null; let bd = 64;
+  for (const sp of SPOTS) { const d = hyp(ME.x, ME.y, sp.stand[0], sp.stand[1]); if (d < bd) { bd = d; nearSpot = sp; } }
+  const sp = pendingSpot; if (!sp || mode !== 'play') return;
+  const d = hyp(ME.x, ME.y, sp.stand[0], sp.stand[1]);
+  if (d < 26 || (!ME.path && clock - (ME.arrived || -9) < 0.3 && d < 150)) openSpot(sp);
+  else if (!ME.path) { pendingSpot = null; renderQuest(); }
+}
+function markSeen(id) {
+  if (S.seen.includes(id)) return;
+  const before = earned();
+  S.seen.push(id); save(); renderHud();
+  for (const c of earned()) if (!before.has(c)) { BD[c].classList.remove('pop'); void BD[c].offsetWidth; BD[c].classList.add('pop'); }
+  if (SPOT_EL[id]) SPOT_EL[id].classList.add('seen');
+}
+function openSpot(sp) {
+  if (mode !== 'play') return;
+  pendingSpot = null; ME.path = null; curSpot = sp; panelView = 'spot';
+  (sp.act || []).forEach(act);
+  markSeen(sp.id); renderQuest();
+  talk(sp.lines, () => { (sp.after || []).forEach(act); mode = 'play'; renderQuest(); });
+}
+function openZone(rm) {
+  if (!rm || mode !== 'play') return;
+  const info = ZONES_INFO[rm.z];
+  pendingSpot = null; ME.path = null; curSpot = { room: rm }; panelView = 'zone';
+  markSeen('zone:' + rm.z); renderQuest();
+  talk(info.lines, () => { mode = 'play'; });
+}
+// 表單範例（取自 doc/ 內四階表單的欄位，人名以「○」遮罩）
+function openFormView(id) {
+  const f = FORMS[id]; if (!f || (mode !== 'play' && mode !== 'title')) return;
+  const prev = mode; mode = 'busy';
+  const body = f.kv ? `<table class="tbl">${f.kv.map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</table>`
+    : `<table class="tbl"><tr>${f.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${f.rows.map(r => r.c ? `<tr class="bad">${r.c.map(c => `<td>${esc(c)}</td>`).join('')}</tr>` : `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`;
+  openModal(`<div class="card">${head(f.no, f.name, '表單範例')}<div class="cb">${body}${f.foot ? `<div class="ref">${esc(f.foot)}</div>` : ''}
+    <div class="ref">範例資料為教學用虛構內容。</div><div class="acts"><button class="btn go" id="bClose">關閉</button></div></div></div>`);
+  W('bClose').onclick = () => { closeModal(); mode = prev; };
+  W('bClose').focus();
+}
+function renderSpots() {
+  const small = CAM.z < 0.9;
+  for (const sp of SPOTS) {
+    const el = SPOT_EL[sp.id], [sx, sy] = toScreen(sp.x, sp.y);
+    const on = mode !== 'title' && sx > -20 && sx < MW + 20 && sy > -20 && sy < MH + 20;
+    vis(el, on); if (!on) continue;
+    setS(el, 'transform', `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px) scale(${small ? 0.72 : 1})`);
+    el.classList.toggle('near', nearSpot === sp && mode === 'play' && !small);
+    el.classList.toggle('cur', curSpot === sp && (pendingSpot === sp || !!DL));
+  }
+}
+function placeOf(sp) { if (sp.place) return sp.place; const rm = roomAt([sp.x, sp.y]); return rm.out ? rm.name : `${rm.code} ${rm.name}`; }
+const formChips = (forms, views = {}) => forms.map(f => { const v = views[f] || (FORMS[f] ? f : ''); return `<span class="chip f${v ? ' link' : ''}"${v ? ` data-form="${esc(v)}" title="點開看表單範例"` : ''}>${esc(DOCS[f] ? f + ' ' + DOCS[f] : f)}${v ? ' ↗' : ''}</span>`; }).join('');
+const ctlCards = (annex, got) => annex.map(a => `<div class="ctl${got.has(a) ? ' got' : ''}"><b>附錄A ${a} ${esc(ANNEX[a])}</b><p>${esc(ANNEX_TEXT[a])}</p></div>`).join('');
+function renderExplorePanel() {
+  const q = W('quest'), got = earned(), seenN = SPOTS.filter(s => S.seen.includes(s.id)).length;
+  const btns = (spot) => `<div class="qbtns${spot ? ' five' : ''}">${sheetBtn()}${spot ? '<button type="button" data-b="board">◀ 圖鑑</button><button type="button" data-b="again">🔊 再聽</button>' : '<button type="button" data-b="reset">清除紀錄</button>'}<button type="button" data-b="map" class="${overview ? 'on' : ''}">全圖 M</button><button type="button" data-b="voice" class="${S.voice ? 'on' : ''}">語音${S.voice ? '開' : '關'}</button><button type="button" data-b="help">說明</button></div>`;
+  if (panelView === 'spot' && curSpot && curSpot.id) {
+    const sp = curSpot, z = ZONES[sp.zone];
+    const st = pendingSpot === sp ? '阿哲正在走過去…' : DL ? '說明中' : S.seen.includes(sp.id) ? '✔ 已聽過說明' : '尚未探索';
+    q.innerHTML = `<div class="qh"><span class="no">${sp.icon} 探索點</span><span class="zpill" style="background:${sp.zone === 'W' ? '#fff' : z.chip}">${esc(zoneName(sp.zone))}</span></div>
+      <h3>${esc(sp.title)}</h3>
+      <div class="meta"><span><b>位置</b>${esc(placeOf(sp))}</span><span><b>狀態</b>${esc(st)}</span></div>
+      <div class="sec">規定重點</div><ul class="pts">${sp.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>
+      <div class="sec">依據文件</div><div class="basis"><div class="bl"><i>程序書</i><div>${procLines(sp.proc)}</div></div>
+        ${sp.forms.length ? `<div class="bl"><i>表單</i><div class="chips">${formChips(sp.forms, sp.views)}</div></div>` : ''}</div>
+      <div class="sec">ISO/IEC 27001:2022</div><div class="basis"><div class="bl"><i>運作流程</i><div class="chips">${(sp.ops || ['A07']).map(o => `<span class="chip o">${esc(o + ' ' + OPS[o])}</span>`).join('')}</div></div>${ctlCards(sp.annex, got)}</div>
+      ${btns(true)}`;
+  } else if (panelView === 'zone' && curSpot && curSpot.room) {
+    const rm = curSpot.room, info = ZONES_INFO[rm.z], z = ZONES[rm.z];
+    const row = (FORMS['L4-29'].rows || []).find(r => Array.isArray(r) && r[0] === rm.code);
+    q.innerHTML = `<div class="qh"><span class="no">區域說明</span><span class="zpill" style="background:${rm.z === 'W' ? '#fff' : z.chip}">${esc(zoneName(rm.z))}</span></div>
+      <h3>${esc(rm.out ? rm.name : rm.code + ' ' + rm.name)}</h3>
+      <div class="meta"><span><b>定義與範圍</b>${esc(info.def)}</span><span><b>進入條件</b>${esc(info.entry)}</span>${row ? `<span><b>本區門禁</b>${esc(row[3])}　<b>監視器</b>${esc(row[4])}</span>` : ''}</div>
+      <div class="sec">管制要求</div><ul class="pts">${info.rule.split('；').map(p => `<li>${esc(p)}</li>`).join('')}</ul>
+      <div class="sec">依據文件</div><div class="basis"><div class="bl"><i>程序書</i><div>${procLines(['L2-09 §5.2.1'])}</div></div><div class="bl"><i>表單</i><div class="chips">${formChips(['L4-29'])}</div></div></div>
+      <div class="sec">ISO/IEC 27001:2022</div><div class="basis"><div class="bl"><i>運作流程</i><div class="chips"><span class="chip o">A07 ${esc(OPS.A07)}</span></div></div>${ctlCards(info.annex, got)}</div>
+      ${btns(true).replace('<button type="button" data-b="again">🔊 再聽</button>', '')}`;
+  } else {
+    const groups = ['W', 'G', 'Y', 'R'].map(zk => `<div class="sgrp"><b style="color:${zk === 'W' ? '#E2E8F0' : ZONES[zk].chip}">${esc(ZONES[zk].name)}｜${esc(ZONES[zk].full)}</b>${SPOTS.filter(s => s.zone === zk).map(s => `<button type="button" class="${S.seen.includes(s.id) ? 'seen' : ''}" data-spot="${s.id}"><span>${s.icon}</span>${esc(s.title)}</button>`).join('')}</div>`).join('');
+    q.innerHTML = `<div class="qh"><span class="no">EXPLORE</span><span class="zpill" style="background:var(--sun)">已探索 ${seenN} / ${SPOTS.length}</span></div>
+      <h3>探索圖鑑</h3>
+      <div class="prog"><i style="width:${(seenN / SPOTS.length * 100).toFixed(1)}%"></i></div>
+      <div class="meta"><span>點地圖上的圖示或下方項目，阿哲會走過去，Allan 老師與阿拉蕾出來說明。區域名稱標籤也可以點。</span></div>
+      <div class="zchips">${['W', 'G', 'Y', 'R'].map(zk => `<button type="button" data-zone="${ZONE_ROOM[zk]}" style="background:${zk === 'W' ? '#fff' : ZONES[zk].chip}">${S.seen.includes('zone:' + zk) ? '✔ ' : ''}${esc(ZONES[zk].name)}說明</button>`).join('')}</div>
+      <div class="slist">${groups}</div>
+      <div class="meta"><span>${esc(CREDIT)}</span></div>
+      ${btns(false)}`;
+  }
+  fitPanel();
+}
+function showTitleExplore() {
+  const t = W('title');
+  t.hidden = false;
+  t.innerHTML = `<div class="kick">ISO/IEC 27001:2022 附錄A｜運作流程 A07 實體安全</div>
+    <h1>實體安全大冒險<small>自由探索版</small></h1>
+    <p>隨意帶著阿哲四處走，點選設備、情境或區域，聽 Allan 老師與阿拉蕾說明規定</p>
+    <div class="zs">${'WGYR'.split('').map(z => `<span style="background:${z === 'W' ? '#fff' : ZONES[z].chip}">${ZONES[z].name}</span>`).join('')}</div>
+    <div class="tb"><button type="button" id="tNew">▶ ${S.seen.length ? '繼續探索' : '開始探索'}</button><button type="button" class="alt" id="tHelp">操作說明</button><a class="alt" href="../zone-game/index.html">闖關版</a><a class="alt" href="../zone-quest/index.html">影片版</a></div>
+    <div class="by">${esc(CREDIT)}</div>`;
+  W('tNew').onclick = () => {
+    t.hidden = true; S.started = true; save();
+    F = { ...F0, cables: 1, labels: 1, blinds: 1 }; for (const k in F) FT[k] = -99;
+    for (const id in A) if (id !== 'eng') { A[id].vis = false; A[id].follow = null; A[id].path = null; }
+    place('eng', 'main_out'); panelView = 'list'; renderQuest(); renderHud();
+    talk(EXPLORE_INTRO, () => { mode = 'play'; renderQuest(); });
+  };
+  W('tHelp').onclick = openHelp;
+}
+
+/* ═════════════ 16. 啟動 ═════════════ */
+/* 版面：電腦（1280×720 等比縮放）、手機直向（地圖＋底部任務卡抽屜）、手機橫向或小框（地圖＋右側精簡任務卡）。
+   依視窗或 iframe（例如 Google Sites 嵌入框）的實際寬高自動切換。 */
+let LAY = 'd', SW = 1280, SH = 720, sheetOpen = false;
+const HUD_P = 80, SHEET_P = 166, HUD_L = 46, PANEL_L = 290;
+const IN_FRAME = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+function sheetBtn() { return `<button type="button" class="sheetbtn" data-b="sheet">${sheetOpen ? '▼ 收合' : !EXPLORE ? '▲ 任務卡' : panelView === 'list' ? '▲ 圖鑑' : '▲ 規定'}</button>`; }
+function collapseSheet() { if (sheetOpen) { sheetOpen = false; applyLayout(); } }
+function setRect(el, [x, y, w, h]) { Object.assign(el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' }); }
+function applyLayout() {
+  const vw = Math.max(1, innerWidth), vh = Math.max(1, innerHeight), ar = vw / vh;
+  LAY = ar < 1.2 ? 'p' : (vw < 860 || vh < 500) ? 'l' : 'd';
+  if (LAY !== 'p') sheetOpen = false;
+  document.body.classList.remove('lay-d', 'lay-p', 'lay-l'); document.body.classList.add('lay-' + LAY);
+  let hud, map, q;
+  if (LAY === 'd') { SW = 1280; SH = 720; hud = [0, 0, 1280, 56]; map = [0, 56, 900, 664]; q = [900, 56, 380, 664]; }
+  else if (LAY === 'p') {
+    SW = vw < 520 ? 420 : vw < 820 ? 540 : 660; SH = Math.max(560, Math.round(SW * vh / vw));
+    hud = [0, 0, SW, HUD_P]; map = [0, HUD_P, SW, SH - HUD_P - SHEET_P]; q = sheetOpen ? [0, HUD_P, SW, SH - HUD_P] : [0, SH - SHEET_P, SW, SHEET_P];
+  } else {
+    SH = 400; SW = Math.max(640, Math.round(SH * ar));
+    hud = [0, 0, SW, HUD_L]; map = [0, HUD_L, SW - PANEL_L, SH - HUD_L]; q = [SW - PANEL_L, HUD_L, PANEL_L, SH - HUD_L];
+  }
+  const sc = LAY === 'd' ? Math.min(vw / 1280, vh / 720) : Math.min(vw / SW, vh / SH);
+  Object.assign(W('viewport').style, { width: SW * sc + 'px', height: SH * sc + 'px' });
+  Object.assign(W('stage').style, { width: SW + 'px', height: SH + 'px', transform: `scale(${sc})` });
+  setRect($('.hud'), hud); setRect(W('map'), map); setRect(W('quest'), q);
+  W('quest').classList.toggle('open', sheetOpen);
+  MW = map[2]; MH = map[3];
+  W('world').setAttribute('viewBox', `0 0 ${MW} ${MH}`);
+  Z_PLAY = LAY === 'd' ? 1.35 : LAY === 'p' ? 1.12 : 1.05;
+  Z_ALL = Math.min(MW / (BOUNDS[2] - BOUNDS[0]), MH / (BOUNDS[3] - BOUNDS[1]));
+  renderQuest();
+}
+addEventListener('resize', applyLayout);
+// 嵌入網頁（如 Google Sites）時可另開新視窗；一般瀏覽時改為全螢幕
+{
+  const b = W('bPop');
+  if (b) {
+    const fsOK = !IN_FRAME && document.fullscreenEnabled;
+    b.hidden = !IN_FRAME && !fsOK;
+    b.textContent = IN_FRAME ? '⤢ 新視窗' : '⛶ 全螢幕';
+    b.title = IN_FRAME ? '以新視窗開啟完整畫面' : '全螢幕';
+    b.addEventListener('pointerdown', e => e.stopPropagation());
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      if (IN_FRAME) window.open(location.href, '_blank', 'noopener');
+      else if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(() => {});
+    });
+  }
+}
 let last = performance.now();
 function frame(ts) {
   const dt = clamp((ts - last) / 1000, 0, 0.05); last = ts; clock += dt;
   update(dt); render(dt);
   requestAnimationFrame(frame);
 }
-renderQuest(); renderHud(); showTitle();
+applyLayout(); renderHud(); showTitle();
 document.fonts?.ready.then(fitPanel);
 CAM = clampCam({ x: 720, y: 400, z: Z_ALL });
 requestAnimationFrame(frame);
@@ -882,7 +1121,8 @@ requestAnimationFrame(frame);
 // 自動測試用：模擬玩家完成目前的互動（不影響一般遊玩）
 window.__game = {
   get mode() { return mode; }, get mission() { return MI; }, get step() { return SI; }, get finding() { return !!finding; }, get dialog() { return !!DL; }, get score() { return score(); },
-  S: () => S, me: () => [ME.x, ME.y], start: i => { W('title').hidden = true; startMission(i, true); },
+  S: () => S, me: () => [ME.x, ME.y], get pending() { return pendingSpot ? pendingSpot.id : null; }, get panel() { return panelView; },
+  goSpot: id => goSpot(spotById(id)), openSpot: id => openSpot(spotById(id)), zone: z => openZone(ROOMS.find(r => r.id === ZONE_ROOM[z])), start: i => { W('title').hidden = true; startMission(i, true); },
   newGame: () => W('tNew').click(), advance, pin: () => { pinOK = true; if (!W('modal').hidden && W('pd')) { closeModal(); mode = 'play'; } },
   goTarget: () => { const tg = targetOf(stepNow()); if (tg && mode === 'play') { ME.x = tg[0]; ME.y = tg[1]; resetTrail(); } },
   findAll: () => { if (!finding) return; finding.c.spots.forEach(s => findClick(s.x, s.y)); },

@@ -252,6 +252,7 @@ body.render .controls, body.render .chapters, body.render .start { display: none
     <span id="clock">0:00 / 0:00</span>
     <button id="fs" type="button" aria-label="全螢幕">⛶</button>
     <a class="game" href="../zone-game/index.html">🎮 互動闖關版</a>
+    <a class="game" href="../zone-explore/index.html">🧭 自由探索版</a>
   </div>
   <div class="chapters" id="chapters"></div>
   <audio id="audio" src="narration.mp3" preload="auto"></audio>
@@ -866,7 +867,16 @@ if (!RENDER) {
   $('#prev').onclick = () => { const t = now(), si = sceneOf(t); go(model[t - model[si].T.start > 2 ? si : Math.max(0, si - 1)].T.start); };
   $('#next').onclick = () => go(model[Math.min(model.length - 1, sceneOf(now()) + 1)].T.start);
   seek.oninput = () => go(seek.value / 1000 * TOTAL);
-  $('#fs').onclick = () => { const v = $('#viewport'); (document.fullscreenElement ? document.exitFullscreen() : v.requestFullscreen?.())?.catch?.(() => {}); };
+  // 嵌入網頁（如 Google Sites）時若不允許全螢幕，改為另開新視窗
+  const IN_FRAME = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+  const popOut = () => { pause(); window.open(location.href, '_blank', 'noopener'); };
+  if (IN_FRAME && !document.fullscreenEnabled) { $('#fs').textContent = '⤢'; $('#fs').title = '以新視窗開啟'; $('#fs').setAttribute('aria-label', '以新視窗開啟'); }
+  $('#fs').onclick = () => {
+    const v = $('#viewport');
+    if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); return; }
+    if (!document.fullscreenEnabled || !v.requestFullscreen) { if (IN_FRAME) popOut(); return; }
+    v.requestFullscreen().catch(() => { if (IN_FRAME) popOut(); });
+  };
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' && e.key !== ' ') return;
     if (e.key === ' ') { e.preventDefault(); playing() ? pause() : play(); }
