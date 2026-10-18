@@ -1,9 +1,9 @@
-// 逐格渲染 index.html 並與旁白合成 MP4：node tools/render_video.cjs <url> <輸出.mp4> [fps]
+// 逐格渲染 index.html 並與旁白合成 MP4：node tools/render_video.cjs <url> <輸出.mp4> [fps] [旁白 wav，預設 build/narration.wav]
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
 const path = require('path');
 (async () => {
-  const [,, url, out, fpsArg] = process.argv;
+  const [,, url, out, fpsArg, wavArg] = process.argv;
   const fps = +(fpsArg || 15);
   const root = path.resolve(__dirname, '..');
   const b = await chromium.launch();
@@ -12,7 +12,7 @@ const path = require('path');
   const total = await p.evaluate(() => window.TOTAL_DURATION);
   const n = Math.ceil(total * fps);
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
-    '-i', path.join(root, 'build', 'narration.wav'), '-map', '0:v', '-map', '1:a',
+    '-i', wavArg ? path.resolve(wavArg) : path.join(root, 'build', 'narration.wav'), '-map', '0:v', '-map', '1:a',
     '-c:v', 'libx264', '-preset', 'medium', '-tune', 'animation', '-crf', '22', '-pix_fmt', 'yuv420p', '-r', String(fps),
     '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   const t0 = Date.now();

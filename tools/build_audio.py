@@ -1,12 +1,17 @@
 """產生旁白語音（edge-tts 台灣中文聲線）、合併成單一音軌，並輸出時間軸 timing.js。
-用法：python3 tools/build_audio.py   （需 pip install edge-tts，以及 ffmpeg）
+用法：python3 tools/build_audio.py [子資料夾]   （需 pip install edge-tts，以及 ffmpeg）
+      不加參數：處理根目錄的 scenes.js（主課程）
+      python3 tools/build_audio.py zone-quest：處理 zone-quest/scenes.js（安全區域巡檢動畫）
 """
-import asyncio, json, os, re, ssl, subprocess, wave, hashlib
+import asyncio, json, os, re, ssl, subprocess, sys, wave, hashlib
 
 import edge_tts
 import edge_tts.communicate as _c
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SUB = sys.argv[1].strip("/") if len(sys.argv) > 1 else ""
+BASE = os.path.join(ROOT, SUB)          # scenes.js 所在資料夾；narration.mp3、timing.js 也輸出到這裡
+WAV = os.path.join(ROOT, "build", (SUB + "_" if SUB else "") + "narration.wav")
 CACHE = os.path.join(ROOT, "build", "tts")
 CA = os.environ.get("SSL_CERT_FILE") or "/root/.ccr/ca-bundle.crt"
 if os.path.exists(CA):  # 讓 edge-tts 信任環境中的 proxy CA
@@ -23,11 +28,12 @@ PRE, GAP, POST = 0.8, 0.35, 1.0   # 場景開頭、句間、場景結尾留白�
 def speakable(t):
     t = t.replace("ISO 27001", "ISO 兩七零零一").replace("ISMS", "I S M S").replace("PIMS", "P I M S")
     t = t.replace("NAS", "N A S").replace("MDM", "M D M").replace("～", "，")
+    t = t.replace("UPS", "U P S").replace("SOP", "S O P").replace("PDU", "P D U")
     return re.sub(r"\s+", " ", t)
 
 
 def load_scenes():
-    out = subprocess.check_output(["node", "-e", "const {SCENES}=require('./scenes.js');console.log(JSON.stringify(SCENES))"], cwd=ROOT)
+    out = subprocess.check_output(["node", "-e", "const {SCENES}=require('./scenes.js');console.log(JSON.stringify(SCENES))"], cwd=BASE)
     return json.loads(out)
 
 
@@ -78,12 +84,12 @@ async def main():
         pcm += sil(POST)
         timing.append({"start": round(start, 3), "end": round(len(pcm) / 2 / SR, 3), "lines": lt})
     os.makedirs(os.path.join(ROOT, "build"), exist_ok=True)
-    full = os.path.join(ROOT, "build", "narration.wav")
+    full = WAV
     with wave.open(full, "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(bytes(pcm))
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", full, "-c:a", "libmp3lame", "-b:a", "64k",
-                    os.path.join(ROOT, "narration.mp3")], check=True)
-    with open(os.path.join(ROOT, "timing.js"), "w", encoding="utf-8") as f:
+                    os.path.join(BASE, "narration.mp3")], check=True)
+    with open(os.path.join(BASE, "timing.js"), "w", encoding="utf-8") as f:
         f.write("// 由 tools/build_audio.py 自動產生：每個場景與每句旁白在音軌中的起訖秒數\n")
         f.write("const TIMING = " + json.dumps(timing) + ";\n")
         f.write("if (typeof module !== 'undefined') module.exports = { TIMING };\n")
