@@ -95,4 +95,6 @@ async def main():
         f.write("if (typeof module !== 'undefined') module.exports = { TIMING };\n")
     print(f"lines={len(lines)} total={timing[-1]['end']:.1f}s")
 
-asyncio.run(main())
+
+if __name__ == "__main__":
+    asyncio.run(main())
