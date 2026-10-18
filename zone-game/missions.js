@@ -81,7 +81,7 @@ const MISSIONS = [
   {
     no: 2, zone: 'G', ops: ['A07'], title: '刷卡進門：一人一卡防尾隨', place: 'W-01 大廳 → 門禁閘門 → 綠區', freq: '每次進出',
     proc: ['L2-09 §5.3.1', 'L2-09 §5.3.2'], forms: [], annex: ['7.2'], start: 'main_out',
-    setup: ['tail=car', 'tail.name=陌生人', 'tail~eng'],
+    setup: ['tail=park_n', 'tail.name=陌生人', 'tail~eng'],
     intro: [{ s: 'A', t: '第二關，從大門走進公司。大廳是白區，從閘門開始就是綠區，要刷員工證進入，門禁系統會留下紀錄。' }],
     steps: [
       {
