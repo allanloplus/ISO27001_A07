@@ -649,7 +649,7 @@ function report() {
     <div class="verdict">${esc(verdict)}</div>
     ${n ? S.mistakes.map((x, i) => `<div class="nc"><b>不符合事項 ${i + 1}｜第 ${String(x.no).padStart(2, '0')} 關 ${esc(x.title)}</b><br>情境：${esc(x.q)}<br>你的作法：${esc(x.pick)}<br>正確作法：${esc(x.fix)}<br><span class="r">依據：${esc(x.ref)}</span></div>`).join('') : ''}
     <div class="ref">依據 ISMS-L2-09、ISMS-L3-02 及 L4 表單｜ISO/IEC 27001:2022 附錄A 運作流程 A07 實體安全｜${esc(CREDIT)}</div>
-    <div class="acts"><button class="btn alt" id="rPrint">列印／存成 PDF</button><a class="btn alt" href="../zone-quest/index.html" style="text-decoration:none">觀看影片版</a><button class="btn alt" id="rBoard">任務板</button><button class="btn go" id="rAgain">重新挑戰</button></div></div></div>`);
+    <div class="acts"><button class="btn alt" id="rPrint">列印／存成 PDF</button><a class="btn alt" href="../zone-quest/index.html" style="text-decoration:none">觀看影片版</a><button class="btn alt" id="rBoard">任務板</button><button class="btn alt" id="rAgain">重新挑戰</button><a class="btn go" href="../zone-exam/index.html" style="text-decoration:none">成果驗收測驗 ▶</a></div></div></div>`);
   W('rPrint').onclick = () => window.print();
   W('rBoard').onclick = () => { closeModal(); mode = 'play'; openBoard(); };
   W('rAgain').onclick = () => { S = { done: [], mistakes: [], cur: 0, voice: S.voice, started: true }; save(); closeModal(); renderHud(); talk(INTRO, () => startMission(0, true)); };
@@ -660,15 +660,18 @@ function showTitle() {
   mode = 'title';
   if (EXPLORE) { showTitleExplore(); return; }
   const t = W('title'), cont = S.started && (S.done.length || S.cur);
+  // 網址 #m=5：由成果驗收「重新學習」連過來，直接前往第 5 關
+  const dm = +(location.hash.match(/^#m=(\d+)$/) || [])[1], deep = dm >= 1 && dm <= MISSIONS.length ? dm - 1 : -1;
   t.hidden = false;
   t.innerHTML = `<div class="kick">ISO/IEC 27001:2022 附錄A｜運作流程 A07 實體安全</div>
     <h1>實體安全大冒險<small>互動闖關版</small></h1>
     <p>親自操控機房管理者阿哲，走完白、綠、黃、紅四大安全區域</p>
     <div class="zs">${'WGYR'.split('').map(z => `<span style="background:${z === 'W' ? '#fff' : ZONES[z].chip}">${ZONES[z].name}</span>`).join('')}</div>
-    <div class="tb"><button type="button" id="tNew">▶ ${cont ? '重新開始' : '開始闖關'}</button>${cont ? `<button type="button" id="tCont">繼續第 ${String(MISSIONS[S.cur].no).padStart(2, '0')} 關</button>` : ''}<button type="button" class="alt" id="tHelp">操作說明</button><a class="alt" href="../zone-explore/index.html">探索版</a><a class="alt" href="../zone-quest/index.html">影片版</a></div>
+    <div class="tb">${deep >= 0 ? `<button type="button" id="tDeep">▶ 複習第 ${String(MISSIONS[deep].no).padStart(2, '0')} 關</button>` : ''}<button type="button" id="tNew"${deep >= 0 ? ' class="alt"' : ''}>${deep >= 0 ? '' : '▶ '}${cont ? '重新開始' : '開始闖關'}</button>${cont && deep < 0 ? `<button type="button" id="tCont">繼續第 ${String(MISSIONS[S.cur].no).padStart(2, '0')} 關</button>` : ''}<button type="button" class="alt" id="tHelp">操作說明</button><a class="alt" href="../zone-explore/index.html">探索版</a><a class="alt" href="../zone-quest/index.html">影片版</a><a class="alt" href="../zone-exam/index.html">成果驗收</a></div>
     <div class="by">${esc(CREDIT)}</div>`;
   W('tNew').onclick = () => { S = { done: [], mistakes: [], cur: 0, voice: S.voice, started: true }; save(); t.hidden = true; renderHud(); talk(INTRO, () => startMission(0, true)); };
   if (W('tCont')) W('tCont').onclick = () => { t.hidden = true; startMission(S.cur, true); };
+  if (W('tDeep')) W('tDeep').onclick = () => { t.hidden = true; startMission(deep, true); };
   W('tHelp').onclick = openHelp;
 }
 
@@ -1031,6 +1034,7 @@ function renderExplorePanel() {
       <div class="meta"><span>點地圖上的圖示或下方項目，阿哲會走過去，Allan 老師與阿拉蕾出來說明。區域名稱標籤也可以點。</span></div>
       <div class="zchips">${['W', 'G', 'Y', 'R'].map(zk => `<button type="button" data-zone="${ZONE_ROOM[zk]}" style="background:${zk === 'W' ? '#fff' : ZONES[zk].chip}">${S.seen.includes('zone:' + zk) ? '✔ ' : ''}${esc(ZONES[zk].name)}說明</button>`).join('')}</div>
       <div class="slist">${groups}</div>
+      <a class="examlink${seenN === SPOTS.length ? ' hot' : ''}" href="../zone-exam/index.html">📝 ${seenN === SPOTS.length ? '全部探索完成！前往成果驗收測驗' : '學完了？前往成果驗收測驗'} ▶</a>
       <div class="meta"><span>${esc(CREDIT)}</span></div>
       ${btns(false)}`;
   }
@@ -1038,20 +1042,23 @@ function renderExplorePanel() {
 }
 function showTitleExplore() {
   const t = W('title');
+  // 網址 #spot=dock：由成果驗收「重新學習」連過來，直接走到該探索點
+  const deep = spotById((location.hash.match(/^#spot=([\w-]+)$/) || [])[1]);
   t.hidden = false;
   t.innerHTML = `<div class="kick">ISO/IEC 27001:2022 附錄A｜運作流程 A07 實體安全</div>
     <h1>實體安全大冒險<small>自由探索版</small></h1>
     <p>隨意帶著阿哲四處走，點選設備、情境或區域，聽 Allan 老師與阿拉蕾說明規定</p>
     <div class="zs">${'WGYR'.split('').map(z => `<span style="background:${z === 'W' ? '#fff' : ZONES[z].chip}">${ZONES[z].name}</span>`).join('')}</div>
-    <div class="tb"><button type="button" id="tNew">▶ ${S.seen.length ? '繼續探索' : '開始探索'}</button><button type="button" class="alt" id="tHelp">操作說明</button><a class="alt" href="../zone-game/index.html">闖關版</a><a class="alt" href="../zone-quest/index.html">影片版</a></div>
+    <div class="tb">${deep ? `<button type="button" id="tDeep">▶ 複習：${esc(deep.title)}</button>` : ''}<button type="button" id="tNew"${deep ? ' class="alt"' : ''}>${deep ? '' : '▶ '}${S.seen.length ? '繼續探索' : '開始探索'}</button><button type="button" class="alt" id="tHelp">操作說明</button><a class="alt" href="../zone-game/index.html">闖關版</a><a class="alt" href="../zone-quest/index.html">影片版</a><a class="alt" href="../zone-exam/index.html">成果驗收</a></div>
     <div class="by">${esc(CREDIT)}</div>`;
-  W('tNew').onclick = () => {
+  const begin = () => {
     t.hidden = true; S.started = true; save();
     F = { ...F0, cables: 1, labels: 1, blinds: 1 }; for (const k in F) FT[k] = -99;
     for (const id in A) if (id !== 'eng') { A[id].vis = false; A[id].follow = null; A[id].path = null; }
     place('eng', 'main_out'); panelView = 'list'; renderQuest(); renderHud();
-    talk(EXPLORE_INTRO, () => { mode = 'play'; renderQuest(); });
   };
+  W('tNew').onclick = () => { begin(); talk(EXPLORE_INTRO, () => { mode = 'play'; renderQuest(); }); };
+  if (W('tDeep')) W('tDeep').onclick = () => { begin(); mode = 'play'; goSpot(deep); };
   W('tHelp').onclick = openHelp;
 }
 

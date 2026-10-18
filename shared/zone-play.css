@@ -267,6 +267,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .prog i { display: block; height: 100%; background: linear-gradient(90deg, var(--mint), var(--mint-hi)); }
 .zchips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
 .zchips button { font: 700 12.5px var(--f-body); color: var(--ink); border: 2px solid rgba(0,0,0,.3); border-radius: 8px; padding: 6px 2px; cursor: pointer; }
+.examlink { display: block; text-align: center; font: 700 13px var(--f-body); color: var(--sun); background: rgba(255,197,61,.1); border: 1px dashed rgba(255,197,61,.6); border-radius: 8px; padding: 6px 8px; text-decoration: none; }
+.examlink.hot { color: var(--ink); background: var(--sun); border-style: solid; }
 .slist { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 2px; }
 .sgrp { display: flex; flex-direction: column; gap: 2px; }
 .sgrp > b { font: 700 12px var(--f-body); letter-spacing: .04em; margin: 2px 0 1px; }

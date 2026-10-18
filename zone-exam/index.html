@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>實體安全大冒險｜成果驗收</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* 實體安全大冒險：成果驗收學習測驗（一般網頁捲動版面，手機與 Google Sites 嵌入框皆適用） */
+:root {
+  --hall: #0B1220; --fg: #DCE7F5; --dim: #8193AE; --panel: #14223A; --panel-2: #1B2D4B; --line: #2B4166;
+  --ink: #0F172A; --mint: #16C47F; --mint-hi: #2BF0A6; --sun: #FFC53D; --alert: #F43F5E; --paper: #FFFDF6;
+  --f-display: 'Huninn', 'Noto Sans TC', sans-serif;
+  --f-body: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; background: radial-gradient(1100px 520px at 50% -160px, #1B2D4B, transparent), var(--hall); color: var(--fg); font: 400 16px/1.7 var(--f-body); }
+button, input { font-family: var(--f-body); }
+button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--mint-hi); outline-offset: 2px; }
+.page { max-width: 880px; margin: 0 auto; padding: 0 16px 32px; }
+
+/* ── 頁首 ── */
+.top { display: flex; align-items: center; gap: 10px 14px; padding: 14px 0 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.logo { line-height: 1.15; }
+.logo b { display: block; font: 400 24px var(--f-display); color: var(--sun); text-shadow: 0 2px 0 #7A4A00; }
+.logo small { font-size: 12px; color: var(--dim); letter-spacing: .04em; }
+.links { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.links a, .links button { font: 500 13px/1.4 var(--f-body); color: var(--fg); background: var(--panel-2); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; text-decoration: none; cursor: pointer; }
+.links a:hover, .links button:hover { border-color: var(--sun); }
+
+/* ── 共用 ── */
+.view { padding-top: 22px; }
+.kick { display: inline-block; font: 700 12px var(--f-body); color: var(--mint-hi); background: #0E2A22; border: 1px solid #1F6B55; border-radius: 6px; padding: 2px 10px; letter-spacing: .03em; }
+h1 { margin: 8px 0 4px; font: 400 40px/1.15 var(--f-display); color: var(--sun); text-shadow: 0 3px 0 #7A4A00; }
+h1 small { display: block; margin-top: 6px; font: 400 22px var(--f-display); color: #fff; text-shadow: none; }
+h2 { margin: 0 0 10px; font: 700 19px/1.5 var(--f-body); color: #fff; }
+h2 span { font-size: 13px; font-weight: 500; color: var(--dim); }
+h3 { margin: 22px 0 10px; font: 700 18px var(--f-body); color: #fff; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font: 700 16px/1.3 var(--f-body); border: 0; border-radius: 999px; padding: 11px 22px; cursor: pointer; color: var(--ink); background: #E2E8F0; box-shadow: 0 4px 0 #64748B; text-decoration: none; }
+.btn.go { background: var(--sun); box-shadow: 0 4px 0 #B7791F; }
+.btn.mint { background: var(--mint-hi); box-shadow: 0 4px 0 #0E7A52; }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #64748B; }
+.btn:disabled { opacity: .45; cursor: default; transform: none; }
+.acts { display: flex; flex-wrap: wrap; gap: 10px 12px; margin-top: 16px; }
+.note { font-size: 13px; color: var(--dim); margin: 10px 0 0; }
+.chip { display: inline-block; font: 700 12px/1.6 var(--f-body); padding: 0 8px; border-radius: 6px; color: var(--ink); white-space: nowrap; }
+.chip.a { background: #12392F; color: var(--mint-hi); border: 1px solid #1F6B55; }
+
+/* 角色對話 */
+.hero { display: flex; align-items: flex-end; gap: 10px; margin: 6px 0 16px; }
+.av { width: 96px; height: auto; flex: none; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
+.av.r { order: 3; }
+.bubble { position: relative; flex: 1; background: var(--paper); color: var(--ink); border-radius: 16px; padding: 10px 14px; border: 3px solid var(--ink); box-shadow: 0 4px 0 rgba(0,0,0,.35); }
+.bubble b { display: inline-block; font: 700 12px var(--f-body); background: var(--sun); border-radius: 6px; padding: 0 8px; }
+.bubble p { margin: 4px 0 0; font: 500 15.5px/1.65 var(--f-body); }
+.bubble em { font-style: normal; font-weight: 900; color: #B42318; }
+
+/* ── 開始畫面 ── */
+.rules { list-style: none; padding: 0; margin: 14px 0 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.rules li { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; font-size: 14px; line-height: 1.5; }
+.rules b { font: 400 22px var(--f-display); color: var(--sun); margin-right: 4px; }
+.passed { margin: 0 0 16px; padding: 12px 14px; border-radius: 12px; background: #12392F; border: 1px solid #1F6B55; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+.fields label { display: flex; flex-direction: column; gap: 4px; font: 700 14px var(--f-body); color: #fff; }
+.fields label i { font-style: normal; color: var(--alert); margin-left: 2px; }
+.fields input { width: 100%; font: 500 16px var(--f-body); color: var(--fg); background: #0F192B; border: 2px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.fields input:focus { border-color: var(--mint); outline: none; }
+.fields input[aria-invalid="true"] { border-color: var(--alert); }
+.fields .err { min-height: 18px; font: 500 12.5px/1.4 var(--f-body); color: #FDA4AF; }
+.privacy { margin: 4px 0 0; font-size: 12.5px; color: var(--dim); line-height: 1.6; }
+.go-learn { margin-top: 18px; font-size: 14px; color: var(--dim); }
+.go-learn a { color: var(--sun); }
+
+/* ── 作答 ── */
+.qtop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font: 700 15px var(--f-body); }
+.qtop b { font: 400 26px var(--f-display); color: var(--sun); }
+.qtop span:last-child { color: var(--dim); font-weight: 500; font-size: 13.5px; }
+.bar { height: 8px; border-radius: 99px; background: #0F192B; border: 1px solid var(--line); overflow: hidden; margin: 8px 0 14px; }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--mint), var(--mint-hi)); transition: width .25s; }
+.qmeta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.qtext { margin: 0 0 14px; font: 700 19px/1.6 var(--f-body); color: #fff; }
+.opts { display: grid; gap: 10px; }
+.opt { display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: left; padding: 11px 14px; border-radius: 12px; background: var(--panel-2); border: 2px solid var(--line); color: var(--fg); font: 500 16px/1.6 var(--f-body); cursor: pointer; }
+.opt:hover { border-color: #46679A; }
+.opt .k { flex: none; width: 28px; height: 28px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; background: #0F192B; border: 2px solid var(--line); font: 900 14px var(--f-body); }
+.opt[aria-checked="true"] { border-color: var(--mint-hi); background: #12392F; color: #fff; }
+.opt[aria-checked="true"] .k { background: var(--mint-hi); border-color: var(--mint-hi); color: var(--ink); }
+.qnav { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin-top: 18px; }
+.dots button { height: 32px; border-radius: 8px; border: 1px solid var(--line); background: #0F192B; color: var(--dim); font: 700 13px var(--f-body); cursor: pointer; padding: 0; }
+.dots button.done { background: #12392F; border-color: #1F6B55; color: var(--mint-hi); }
+.dots button.cur { box-shadow: 0 0 0 2px var(--sun); color: #fff; }
+.dots button.miss { border-color: var(--alert); color: #FDA4AF; }
+.msg { margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: #3A1420; border: 1px solid #9F1239; color: #FECDD3; font-size: 14.5px; }
+.confirm { margin-top: 14px; padding: 16px; border-radius: 14px; background: #2A2207; border: 2px solid var(--sun); }
+.confirm p { margin: 0; font-weight: 700; color: #fff; }
+
+/* ── 成績 ── */
+.res-head { display: flex; align-items: center; gap: 18px; padding: 18px; border-radius: 16px; border: 2px solid; }
+.res-head.pass { background: #0F2E24; border-color: var(--mint); }
+.res-head.fail { background: #2E1219; border-color: var(--alert); }
+.big { flex: none; width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; align-content: center; background: var(--ink); border: 4px solid; line-height: 1; }
+.pass .big { border-color: var(--mint-hi); }
+.fail .big { border-color: var(--alert); }
+.big b { font: 400 50px var(--f-display); color: #fff; }
+.big span { font-size: 13px; color: var(--dim); margin-top: 4px; }
+.verdict { font: 400 26px/1.3 var(--f-display); }
+.pass .verdict { color: var(--mint-hi); }
+.fail .verdict { color: #FDA4AF; }
+.sub { margin-top: 6px; font-size: 14px; color: var(--fg); }
+.certbox { margin-top: 6px; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 12px 30px rgba(0,0,0,.45); min-height: 120px; display: grid; place-items: center; }
+.certbox img { display: block; width: 100%; height: auto; }
+.certbox .loading { color: var(--ink); padding: 40px; font-weight: 700; }
+details { margin-top: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 4px 16px; }
+details[open] { padding-bottom: 14px; }
+summary { cursor: pointer; padding: 10px 0; font: 700 16px var(--f-body); color: #fff; }
+.edit .fields { margin-top: 6px; }
+.rv, .wrong { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); font-size: 14.5px; line-height: 1.65; }
+.rv.bad, .wrong { border-left: 5px solid var(--alert); }
+.rv.ok { border-left: 5px solid var(--mint); }
+.rv .q, .wrong .q { font-weight: 700; color: #fff; }
+.rv .my, .wrong .my { margin-top: 4px; }
+.rv .my b { color: #FDA4AF; }
+.rv.ok .my b { color: var(--mint-hi); }
+.rv .ans { color: var(--mint-hi); font-weight: 700; }
+.rv .why { margin-top: 4px; color: var(--fg); }
+.ref { margin-top: 6px; font-size: 13px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
+.learn { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+.learn a { font: 700 13.5px/1.4 var(--f-body); color: var(--ink); background: var(--sun); border-radius: 8px; padding: 5px 10px; text-decoration: none; }
+.learn a.e { background: var(--mint-hi); }
+.credit { margin-top: 30px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--dim); text-align: center; }
+
+/* ── 手機 ── */
+@media (max-width: 600px) {
+  .logo b { font-size: 21px; }
+  .links { margin-left: 0; }
+  h1 { font-size: 32px; }
+  h1 small { font-size: 19px; }
+  .av { width: 72px; }
+  .fields { grid-template-columns: 1fr; }
+  .qtext { font-size: 17.5px; }
+  .opt { font-size: 15.5px; padding: 10px 12px; }
+  .dots button { height: 30px; font-size: 12px; }
+  .dots { gap: 5px; }
+  .res-head { flex-direction: column; text-align: center; gap: 10px; }
+  .big { width: 96px; height: 96px; }
+  .big b { font-size: 42px; }
+  .verdict { font-size: 22px; }
+  .btn { font-size: 15px; padding: 10px 18px; }
+  .acts .btn { flex: 1 1 auto; }
+}
+
+/* ── 列印：只印證書（A4 橫式） ── */
+#printArea { display: none; }
+@media print {
+  @page { size: A4 landscape; margin: 0; }
+  body { background: #fff; }
+  .page { display: none; }
+  #printArea { display: block; }
+  #printArea img { display: block; width: 100%; height: auto; }
+}
+</style>
+
+<div class="page">
+  <header class="top">
+    <div class="logo"><b>實體安全大冒險</b><small>成果驗收｜學習測驗</small></div>
+    <nav class="links" aria-label="其他版本"><a href="../zone-quest/index.html">🎬 影片版</a><a href="../zone-game/index.html">🎮 闖關版</a><a href="../zone-explore/index.html">🧭 探索版</a><button type="button" id="bPop" hidden>⤢ 新視窗</button></nav>
+  </header>
+
+  <!-- 開始畫面：說明＋受測人員資料 -->
+  <section class="view" id="vIntro">
+    <div class="hero">
+      <img class="av" src="../assets/chars/allan_point.webp" alt="">
+      <div class="bubble"><b>Allan 老師</b><p>大冒險走完了嗎？來驗收學習成果吧！共 20 題、每題 5 分，<em>90 分以上</em>才算通過；通過就能下載通過證書。</p></div>
+    </div>
+    <span class="kick">ISO/IEC 27001:2022 附錄A｜運作流程 A07 實體安全</span>
+    <h1>實體安全大冒險<small>成果驗收・學習測驗</small></h1>
+    <ul class="rules">
+      <li><b>20</b>題單選題，每題 5 分</li>
+      <li><b>90</b>分以上通過（最多錯 2 題）</li>
+      <li><b>∞</b>不限時間，交卷前可回頭修改</li>
+      <li><b>16</b>項附錄A：7.1～7.14、5.37、6.7</li>
+    </ul>
+    <div class="passed" id="passed" hidden></div>
+    <form class="card" id="fInfo" novalidate>
+      <h2>受測人員資料 <span>（全部必填，會印在通過證書上）</span></h2>
+      <div class="fields" id="fields"></div>
+      <p class="privacy">個人資料蒐集說明：以上資料只用於產生本測驗的通過證書，儲存在你目前使用的瀏覽器中，不會傳送到任何伺服器；清除瀏覽器資料即可刪除。</p>
+      <div class="acts"><button class="btn go" type="submit">▶ 開始測驗</button></div>
+    </form>
+    <p class="go-learn">還沒學完？先到 <a href="../zone-quest/index.html">影片版</a>、<a href="../zone-game/index.html">互動闖關版</a> 或 <a href="../zone-explore/index.html">自由探索版</a> 學習，再回來測驗。</p>
+  </section>
+
+  <!-- 作答 -->
+  <section class="view" id="vQuiz" hidden>
+    <div class="qtop"><span>第 <b id="qNo">1</b> / 20 題</span><span id="qDone">已作答 0 / 20</span></div>
+    <div class="bar"><i id="qBar"></i></div>
+    <article class="card" id="qCard" aria-live="polite"></article>
+    <div class="qnav"><button class="btn" type="button" id="bPrev">◀ 上一題</button><button class="btn go" type="button" id="bNext">下一題 ▶</button></div>
+    <div class="msg" id="qMsg" hidden></div>
+    <div class="confirm" id="qConfirm" hidden><p>20 題都作答完成了。確定要交卷嗎？交卷後就不能再修改答案。</p><div class="acts"><button class="btn" type="button" id="bBack">回頭檢查</button><button class="btn go" type="button" id="bSubmit">確定交卷</button></div></div>
+    <div class="dots" id="dots" aria-label="題號"></div>
+  </section>
+
+  <!-- 成績 -->
+  <section class="view" id="vResult" hidden></section>
+
+  <!-- 單獨顯示證書（由網址 #cert= 開啟，供嵌入網頁時在新視窗下載） -->
+  <section class="view" id="vCert" hidden></section>
+
+  <footer class="credit" id="credit"></footer>
+</div>
+<div id="printArea"><img id="printImg" alt="通過證書"></div>
+
+<script src="../shared/zone-world.js" charset="utf-8"></script>
+<script src="questions.js" charset="utf-8"></script>
+<script>
+'use strict';
+const { ANNEX, ZONES, CREDIT } = ZW;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = n => String(n).padStart(2, '0');
+const QS = EXAM.questions, N = QS.length, KEYS = 'ABCD';
+const IN_FRAME = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+const FIELDS = [['company', '公司名稱', 40, 'organization'], ['unit', '單位', 30, 'off'], ['name', '姓名', 20, 'name'], ['title', '職稱', 20, 'organization-title']];
+
+/* ── 紀錄：只存在本機瀏覽器 ── */
+const STORE = 'iso27001-zone-exam-v1';
+let ST = (() => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; } })();
+const save = () => { try { localStorage.setItem(STORE, JSON.stringify(ST)); } catch (e) {} };
+let info = Object.assign({ company: '', unit: '', name: '', title: '' }, ST.info);
+let run = null;        // 本次作答：{ order, perm, ans, cur, miss }
+let certCanvas = null; // 目前顯示的證書
+
+$('#credit').textContent = CREDIT + '｜依據 ISMS-L2-09、ISMS-L3-02 及 L4 表單';
+function show(id) {
+  for (const v of document.querySelectorAll('.view')) v.hidden = v.id !== id;
+  window.scrollTo(0, 0);
+}
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function today() { const d = new Date(); return { y: d.getFullYear(), m: pad(d.getMonth() + 1), d: pad(d.getDate()) }; }
+function zoneChip(z) {
+  if (z === 'ALL') return '<span class="chip" style="background:linear-gradient(90deg,#F1F5F9 25%,#4ADE80 25% 50%,#FACC15 50% 75%,#FB7185 75%)">全區</span>';
+  return `<span class="chip" style="background:${z === 'W' ? '#F1F5F9' : ZONES[z].chip}">${esc(ZONES[z].name)}｜${esc(ZONES[z].full)}</span>`;
+}
+const annexChips = q => q.annex.map(c => `<span class="chip a">附錄A ${esc(c)} ${esc(ANNEX[c])}</span>`).join('');
+
+/* ── 受測人員資料表單 ── */
+function fieldsHTML(prefix) {
+  return FIELDS.map(([k, label, max, ac]) => `<label><span>${label}<i>*</i></span><input id="${prefix}_${k}" name="${k}" maxlength="${max}" autocomplete="${ac}" value="${esc(info[k] || '')}"><span class="err" id="${prefix}_${k}_e"></span></label>`).join('');
+}
+function readFields(prefix) {
+  const out = {}; let first = null;
+  for (const [k, label] of FIELDS) {
+    const el = $(`#${prefix}_${k}`), v = el.value.replace(/\s+/g, ' ').trim();
+    out[k] = v;
+    const bad = !v;
+    el.setAttribute('aria-invalid', bad);
+    $(`#${prefix}_${k}_e`).textContent = bad ? `請填寫${label}` : '';
+    if (bad && !first) first = el;
+  }
+  if (first) { first.focus(); return null; }
+  return out;
+}
+$('#fields').innerHTML = fieldsHTML('f');
+// 填寫後即時清除錯誤提示
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.tagName === 'INPUT' && el.value.trim() && el.getAttribute('aria-invalid') === 'true') { el.setAttribute('aria-invalid', 'false'); const er = document.getElementById(el.id + '_e'); if (er) er.textContent = ''; }
+});
+$('#fInfo').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = readFields('f'); if (!v) return;
+  info = v; ST.info = info; save();
+  startRun();
+});
+function renderPassed() {
+  const p = ST.pass, el = $('#passed');
+  el.hidden = !p;
+  if (!p) return;
+  el.innerHTML = `<span>✔ ${esc(p.info.name)} 已於 ${esc(p.date)} 以 <b>${p.score}</b> 分通過成果驗收（證書編號 ${esc(p.no)}）。</span><button class="btn mint" type="button" id="bMyCert">查看／下載證書</button>`;
+  $('#bMyCert').onclick = () => showCertOnly(p);
+}
+
+/* ── 作答 ── */
+function startRun() {
+  const order = shuffle([...Array(N).keys()]);
+  run = { order, perm: QS.map(() => shuffle([0, 1, 2, 3])), ans: {}, cur: 0, miss: false };
+  $('#qMsg').hidden = true; $('#qConfirm').hidden = true;
+  show('vQuiz'); renderQ();
+}
+function renderQ() {
+  const qi = run.order[run.cur], q = QS[qi], done = Object.keys(run.ans).length;
+  $('#qNo').textContent = run.cur + 1;
+  $('#qDone').textContent = `已作答 ${done} / ${N}`;
+  $('#qBar').style.width = (done / N * 100) + '%';
+  $('#qCard').innerHTML = `<div class="qmeta">${zoneChip(q.zone)}</div>
+    <p class="qtext" id="qText">${esc(q.q)}</p>
+    <div class="opts" role="radiogroup" aria-labelledby="qText">${run.perm[qi].map((oi, k) => `<button type="button" class="opt" role="radio" aria-checked="${run.ans[qi] === oi}" data-o="${oi}"><span class="k">${KEYS[k]}</span><span>${esc(q.opts[oi])}</span></button>`).join('')}</div>`;
+  $('#bPrev').disabled = run.cur === 0;
+  $('#bNext').textContent = run.cur < N - 1 ? '下一題 ▶' : '交卷 ✔';
+  $('#dots').innerHTML = run.order.map((qj, i) => `<button type="button" data-i="${i}" class="${run.ans[qj] !== undefined ? 'done' : run.miss ? 'miss' : ''}${i === run.cur ? ' cur' : ''}" aria-label="第 ${i + 1} 題${run.ans[qj] !== undefined ? '，已作答' : '，未作答'}">${i + 1}</button>`).join('');
+}
+function choose(oi) {
+  run.ans[run.order[run.cur]] = oi;
+  $('#qConfirm').hidden = true;
+  if (run.miss && Object.keys(run.ans).length === N) $('#qMsg').hidden = true;
+  renderQ();
+}
+function go(i) { run.cur = Math.max(0, Math.min(N - 1, i)); $('#qConfirm').hidden = true; renderQ(); $('#qCard').scrollIntoView({ block: 'nearest' }); }
+function tryFinish() {
+  const miss = run.order.map((qi, i) => run.ans[qi] === undefined ? i + 1 : 0).filter(Boolean);
+  if (miss.length) {
+    run.miss = true;
+    const m = $('#qMsg'); m.hidden = false;
+    m.textContent = `還有 ${miss.length} 題沒有作答：第 ${miss.join('、')} 題。點下方題號可以直接跳過去。`;
+    go(miss[0] - 1);
+    return;
+  }
+  $('#qMsg').hidden = true; $('#qConfirm').hidden = false; $('#bSubmit').focus();
+}
+$('#qCard').addEventListener('click', e => { const b = e.target.closest('.opt'); if (b) choose(+b.dataset.o); });
+$('#dots').addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(+b.dataset.i); });
+$('#bPrev').onclick = () => go(run.cur - 1);
+$('#bNext').onclick = () => run.cur < N - 1 ? go(run.cur + 1) : tryFinish();
+$('#bBack').onclick = () => { $('#qConfirm').hidden = true; };
+$('#bSubmit').onclick = grade;
+addEventListener('keydown', e => {
+  if ($('#vQuiz').hidden || e.target.tagName === 'INPUT' || e.altKey || e.ctrlKey || e.metaKey) return;
+  const k = e.key.toUpperCase(), idx = '1234'.indexOf(k) >= 0 ? '1234'.indexOf(k) : KEYS.indexOf(k);
+  if (idx >= 0 && k.length === 1) { e.preventDefault(); choose(run.perm[run.order[run.cur]][idx]); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); if (run.cur < N - 1) go(run.cur + 1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); go(run.cur - 1); }
+});
+
+/* ── 計分 ── */
+function grade() {
+  const right = run.order.filter(qi => run.ans[qi] === 0).length, score = right * EXAM.each, passed = score >= EXAM.pass;
+  const t = today(), date = `${t.y}/${t.m}/${t.d}`;
+  ST.attempts = (ST.attempts || 0) + 1;
+  ST.last = { score, date };
+  let cert = null;
+  if (passed) {
+    cert = { ...info, score, date, no: `PSA-${t.y}${t.m}${t.d}-${hash([info.company, info.unit, info.name, info.title, score, Date.now()].join('|'))}` };
+    ST.pass = { score, date, no: cert.no, info: { ...info } };
+  }
+  save();
+  passed ? showPass(right, score, date, cert) : showFail(right, score, date);
+}
+function hash(s) {
+  let h = 0x811c9dc5;
+  for (const ch of s) { h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; }
+  return (h.toString(36).toUpperCase() + 'K7Q3').slice(0, 6);
+}
+const myAns = qi => QS[qi].opts[run.ans[qi]];
+
+function showPass(right, score, date, cert) {
+  const wrong = run.order.filter(qi => run.ans[qi] !== 0);
+  const r = $('#vResult');
+  $('#vCert').innerHTML = '';
+  r.innerHTML = `<div class="res-head pass"><div class="big"><b>${score}</b><span>分</span></div><div>
+      <div class="verdict">🎉 恭喜通過成果驗收！</div>
+      <div class="sub">答對 ${right} / ${N} 題｜及格 ${EXAM.pass} 分｜第 ${ST.attempts} 次測驗｜${esc(date)}</div></div></div>
+    <div class="hero" style="margin-top:16px"><img class="av" src="../assets/chars/allan_laugh.webp" alt=""><div class="bubble"><b>Allan 老師</b><p>恭喜 ${esc(info.name)}！白、綠、黃、紅四個區域的規定都掌握得很好。下面是你的通過證書，記得下載留存。</p></div><img class="av r" src="../assets/chars/arale_excited.webp" alt=""></div>
+    ${certBlock()}
+    <details class="edit"><summary>證書上的資料有誤？點這裡修改</summary>
+      <form id="fEdit" novalidate><div class="fields">${fieldsHTML('e')}</div><div class="acts"><button class="btn go" type="submit">更新證書</button></div></form></details>
+    <details class="review"><summary>答題解析：20 題正確答案與說明（答錯 ${wrong.length} 題）</summary>
+      ${run.order.map((qi, i) => reviewItem(qi, i)).join('')}</details>
+    <div class="acts"><a class="btn" href="../zone-explore/index.html">🧭 回到探索版</a><button class="btn" type="button" id="bAgain">↻ 再測一次</button></div>`;
+  show('vResult');
+  bindCert(cert);
+  $('#fEdit').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = readFields('e'); if (!v) return;
+    info = v; ST.info = info; Object.assign(cert, v); ST.pass.info = { ...v }; save();
+    bindCert(cert);
+  });
+  $('#bAgain').onclick = startRun;
+}
+function reviewItem(qi, i) {
+  const q = QS[qi], ok = run.ans[qi] === 0;
+  return `<div class="rv ${ok ? 'ok' : 'bad'}"><div class="q">${i + 1}. ${esc(q.q)}</div>
+    <div class="my">你的答案：<b>${ok ? '✔' : '✘'} ${esc(myAns(qi))}</b></div>
+    ${ok ? '' : `<div>正確答案：<span class="ans">${esc(q.opts[0])}</span></div>`}
+    <div class="why">解析：${esc(q.why)}</div>
+    <div class="ref">依據：${esc(q.ref)} ${annexChips(q)}</div></div>`;
+}
+function showFail(right, score, date) {
+  const wrong = run.order.filter(qi => run.ans[qi] !== 0);
+  const r = $('#vResult');
+  r.innerHTML = `<div class="res-head fail"><div class="big"><b>${score}</b><span>分</span></div><div>
+      <div class="verdict">未通過，請重新學習或重新測驗</div>
+      <div class="sub">答對 ${right} / ${N} 題｜需 ${EXAM.pass} 分以上（最多錯 ${(100 - EXAM.pass) / EXAM.each} 題）｜第 ${ST.attempts} 次測驗｜${esc(date)}</div></div></div>
+    <div class="hero" style="margin-top:16px"><img class="av" src="../assets/chars/allan_think.webp" alt=""><div class="bubble"><b>Allan 老師</b><p>還差一點！下面是答錯的 ${wrong.length} 題，以及建議複習的關卡和探索點。先重新學習，再回來挑戰，你一定可以的！</p></div></div>
+    <h3>答錯的題目與建議複習</h3>
+    ${wrong.map(qi => { const q = QS[qi]; return `<div class="wrong"><div class="q">${esc(q.q)}</div>
+      <div class="my">你的答案：${esc(myAns(qi))}　<b style="color:#FDA4AF">✘</b></div>
+      <div class="ref">依據：${esc(q.ref)} ${annexChips(q)}</div>
+      <div class="learn"><a href="../zone-game/index.html#m=${q.m}">🎮 闖關版 第 ${pad(q.m)} 關｜${esc(LEARN_M[q.m])}</a><a class="e" href="../zone-explore/index.html#spot=${q.spot}">🧭 探索版｜${esc(LEARN_SPOT[q.spot])}</a></div></div>`; }).join('')}
+    <p class="note">為了讓你重新學習，這裡先不公布正確答案；通過測驗後就能看到 20 題的完整解析。</p>
+    <div class="acts"><a class="btn" href="../zone-explore/index.html">🧭 重新學習（探索版）</a><a class="btn" href="../zone-game/index.html">🎮 重新學習（闖關版）</a><a class="btn" href="../zone-quest/index.html">🎬 影片版</a><button class="btn go" type="button" id="bRetry">↻ 重新測驗</button></div>`;
+  show('vResult');
+  $('#bRetry').onclick = startRun;
+}
+
+/* ── 證書：畫在 canvas 上，可下載 PNG 或列印成 PDF ── */
+function certBlock() {
+  return `<div class="certbox" id="certBox"><div class="loading">證書產生中…</div></div>
+    <div class="acts"><button class="btn go" type="button" id="bDl" disabled>⬇ 下載證書（PNG）</button><button class="btn" type="button" id="bPrint" disabled>🖨 列印／存成 PDF</button>${IN_FRAME ? '<button class="btn mint" type="button" id="bCertPop">⤢ 新視窗開啟證書</button>' : ''}</div>
+    <p class="note">${IN_FRAME ? '嵌入在其他網頁（例如 Google Sites）時，下載或列印可能被擋下；請按「新視窗開啟證書」再下載。' : '列印時選擇「另存為 PDF」即可得到 PDF 檔；版面為 A4 橫式。'}</p>`;
+}
+function bindCert(cert) {
+  const box = $('#certBox');
+  $('#bDl').disabled = $('#bPrint').disabled = true;
+  drawCert(cert).then(c => {
+    certCanvas = c;
+    const url = c.toDataURL('image/png');
+    box.innerHTML = `<img src="${url}" alt="通過證書：${esc(cert.name)}">`;
+    $('#printImg').src = url;
+    $('#bDl').disabled = $('#bPrint').disabled = false;
+  });
+  $('#bDl').onclick = () => download(cert);
+  $('#bPrint').onclick = () => window.print();
+  if ($('#bCertPop')) $('#bCertPop').onclick = () => window.open(location.href.split('#')[0] + '#cert=' + encodeCert(cert), '_blank', 'noopener');
+}
+function download(cert) {
+  if (!certCanvas) return;
+  const name = `實體安全大冒險_通過證書_${cert.name}.png`;
+  certCanvas.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  }, 'image/png');
+}
+function encodeCert(c) {
+  const bytes = new TextEncoder().encode(JSON.stringify([c.company, c.unit, c.name, c.title, c.score, c.date, c.no]));
+  let s = ''; for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function decodeCert(t) {
+  try {
+    const s = atob(t.replace(/-/g, '+').replace(/_/g, '/'));
+    const a = JSON.parse(new TextDecoder().decode(Uint8Array.from(s, ch => ch.charCodeAt(0))));
+    const [company, unit, name, title, score, date, no] = a;
+    if (![company, unit, name, title, date, no].every(v => typeof v === 'string' && v) || typeof score !== 'number') return null;
+    return { company, unit, name, title, score, date, no };
+  } catch (e) { return null; }
+}
+function showCertOnly(p) {
+  const cert = p.info ? { ...p.info, score: p.score, date: p.date, no: p.no } : p;
+  $('#vResult').innerHTML = '';   // 避免兩處證書區塊的 id 重複
+  $('#vCert').innerHTML = `<span class="kick">成果驗收｜通過證書</span>
+    <h1 style="font-size:30px">${esc(cert.name)} 的通過證書</h1>
+    <p class="note" style="margin:0 0 12px">${esc(cert.company)}｜${esc(cert.unit)}｜${esc(cert.title)}｜${cert.score} 分｜${esc(cert.date)}</p>
+    ${certBlock()}
+    <div class="acts"><a class="btn" href="${location.pathname}" id="bToExam">前往成果驗收測驗</a></div>`;
+  show('vCert');
+  bindCert(cert);
+  $('#bToExam').onclick = e => { e.preventDefault(); history.replaceState(null, '', location.pathname); renderPassed(); show('vIntro'); };
+}
+
+const CW = 1754, CH = 1240;
+const FONT_B = "'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif", FONT_D = "Huninn, 'Noto Sans TC', sans-serif";
+const certTexts = d => ({
+  kick: 'ISO/IEC 27001:2022 附錄A｜運作流程 A07 實體安全',
+  org: [d.company, d.unit, d.title].join('　'),
+  body: ['參加「實體安全大冒險」學習課程，並通過成果驗收學習測驗，', `成績 ${d.score} 分（共 ${N} 題，${EXAM.pass} 分及格），特發此證，以資證明。`],
+  s1: '依據文件｜ISMS-L2-09 實體與環境安全管理程序書、ISMS-L3-02 機房與設備保護作業說明書及 L4 表單',
+  s2: '附錄A 控制措施｜7.1～7.14、5.37、6.7，共 16 項｜白區、綠區、黃區、紅區安全區域管理',
+  no: '證書編號　' + d.no,
+  date: '通過日期　' + d.date.replace(/^(\d+)\/(\d+)\/(\d+)$/, (_, y, m, dd) => `${y} 年 ${+m} 月 ${+dd} 日`),
+  sign: '課程講師　Allan Lo 顧問',
+  foot: '製作：Allan Lo 顧問｜本證書由「實體安全大冒險」線上學習測驗產生',
+});
+async function drawCert(d) {
+  const t = certTexts(d), all = Object.values(t).flat().join('') + d.name + '通過證書茲證明成果驗收實體安全CERTIFICATE OF ACHIEVEMENTAllan Lo';
+  try {
+    await Promise.race([Promise.all([
+      document.fonts.load(`400 100px ${FONT_D}`, all),
+      ...[500, 700, 900].map(w => document.fonts.load(`${w} 30px ${FONT_B}`, all)),
+    ]), new Promise(r => setTimeout(r, 5000))]);
+  } catch (e) {}
+  const img = n => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = `../assets/chars/${n}.webp`; });
+  const pics = await Promise.all([img('allan_laugh'), img('arale_excited')]);
+  let c = paint(d, t, pics);
+  try { c.toDataURL(); } catch (e) { c = paint(d, t, []); }   // 以 file:// 開啟時圖片會汙染 canvas，改畫無角色版
+  return c;
+}
+function paint(d, t, pics) {
+  const c = document.createElement('canvas'); c.width = CW; c.height = CH;
+  const x = c.getContext('2d');
+  const font = (w, s, disp) => `${w} ${s}px ${disp ? FONT_D : FONT_B}`;
+  const spacing = v => { if ('letterSpacing' in x) x.letterSpacing = v; };
+  const fit = (text, w, s, maxW, disp) => { let n = s; do { x.font = font(w, n, disp); } while (x.measureText(text).width > maxW && --n > 12); };
+  // 紙面與外框
+  const g = x.createRadialGradient(CW / 2, CH / 2, 200, CW / 2, CH / 2, 1050);
+  g.addColorStop(0, '#FFFDF6'); g.addColorStop(1, '#F1EAD3');
+  x.fillStyle = g; x.fillRect(0, 0, CW, CH);
+  x.strokeStyle = '#14223A'; x.lineWidth = 26; x.strokeRect(13, 13, CW - 26, CH - 26);
+  x.strokeStyle = '#C8961E'; x.lineWidth = 4; x.strokeRect(46, 46, CW - 92, CH - 92);
+  x.lineWidth = 1.5; x.strokeRect(58, 58, CW - 116, CH - 116);
+  x.fillStyle = '#C8961E';
+  for (const [cx, cy] of [[58, 58], [CW - 58, 58], [58, CH - 58], [CW - 58, CH - 58]]) { x.save(); x.translate(cx, cy); x.rotate(Math.PI / 4); x.fillRect(-11, -11, 22, 22); x.restore(); }
+  // 四色區域色帶
+  ['#CBD5E1', '#4ADE80', '#FACC15', '#FB7185'].forEach((col, i) => { x.fillStyle = col; x.fillRect(CW / 2 - 300 + i * 150, 96, 150, 12); });
+  x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  x.fillStyle = '#16805A'; x.font = font(700, 26); x.fillText(t.kick, CW / 2, 168);
+  x.fillStyle = '#14223A'; x.font = font(400, 124, true); spacing('28px'); x.fillText('通過證書', CW / 2 + 14, 300); spacing('0px');
+  x.fillStyle = '#A07A1A'; x.font = font(700, 24); spacing('10px'); x.fillText('CERTIFICATE OF ACHIEVEMENT', CW / 2 + 5, 346); spacing('0px');
+  x.fillStyle = '#475569'; x.font = font(500, 30); x.fillText('茲證明', CW / 2, 420);
+  x.fillStyle = '#0F172A'; fit(d.name, 400, 96, 1000, true); x.fillText(d.name, CW / 2, 532);
+  x.fillStyle = '#C8961E'; x.fillRect(CW / 2 - 340, 556, 680, 3);
+  x.fillStyle = '#1E293B'; fit(t.org, 700, 34, 1300); x.fillText(t.org, CW / 2, 612);
+  // 內文（兩行，依語意斷行）
+  x.fillStyle = '#334155';
+  const lines = t.body;
+  lines.forEach((l, i) => { fit(l, 500, 30, 1300); x.fillText(l, CW / 2, 686 + i * 50); });
+  // 學習範圍
+  const by = 686 + lines.length * 50 + 6;
+  x.fillStyle = 'rgba(243,238,221,.9)'; x.strokeStyle = '#E2D6B0'; x.lineWidth = 2;
+  x.beginPath(); x.roundRect ? x.roundRect(CW / 2 - 650, by, 1300, 116, 18) : x.rect(CW / 2 - 650, by, 1300, 116); x.fill(); x.stroke();
+  x.fillStyle = '#14223A'; fit(t.s1, 500, 23, 1240); x.fillText(t.s1, CW / 2, by + 48);
+  fit(t.s2, 500, 23, 1240); x.fillText(t.s2, CW / 2, by + 90);
+  // 下方：編號與日期、角色、講師簽名與印章
+  const base = CH - 150;
+  x.textAlign = 'left'; x.fillStyle = '#334155'; x.font = font(500, 25);
+  x.fillText(t.no, 150, base - 36); x.fillText(t.date, 150, base + 10);
+  const [al, ar] = pics, ph = 200;
+  if (al) x.drawImage(al, CW / 2 - 20 - al.width * ph / al.height, base - 150, al.width * ph / al.height, ph);
+  if (ar) x.drawImage(ar, CW / 2 + 20, base - 150, ar.width * ph / ar.height, ph);
+  x.textAlign = 'center'; x.fillStyle = '#14223A'; x.font = `italic 400 64px ${FONT_D}`; x.fillText('Allan Lo', CW - 470, base - 30);
+  x.fillStyle = '#64748B'; x.fillRect(CW - 630, base - 12, 320, 2);
+  x.fillStyle = '#334155'; x.font = font(500, 24); x.fillText(t.sign, CW - 470, base + 26);
+  x.save(); x.translate(CW - 205, base - 96); x.rotate(-0.21); x.globalAlpha = 0.86;
+  x.strokeStyle = '#D7263D'; x.fillStyle = '#D7263D';
+  x.lineWidth = 8; x.beginPath(); x.arc(0, 0, 90, 0, Math.PI * 2); x.stroke();
+  x.lineWidth = 2.5; x.beginPath(); x.arc(0, 0, 76, 0, Math.PI * 2); x.stroke();
+  x.font = font(700, 19); x.fillText('成果驗收', 0, -38);
+  x.font = font(900, 56); x.fillText('通過', 0, 22);
+  x.font = font(700, 17); x.fillText('實體安全', 0, 54);
+  x.restore();
+  x.fillStyle = '#94A3B8'; x.font = font(500, 18); x.fillText(t.foot, CW / 2, CH - 78);
+  return c;
+}
+
+/* ── 嵌入網頁時另開新視窗 ── */
+{
+  const b = $('#bPop');
+  b.hidden = !IN_FRAME;
+  b.onclick = () => window.open(location.href.split('#')[0], '_blank', 'noopener');
+}
+
+/* ── 啟動 ── */
+{
+  const m = location.hash.match(/^#cert=([\w-]+)$/), c = m && decodeCert(m[1]);
+  renderPassed();
+  if (c) showCertOnly(c); else show('vIntro');
+}
+</script>
+</html>
